@@ -1,0 +1,1058 @@
+/* ==========================================
+   QualAdd (자격증 등록) 전용 스타일링
+   ========================================== */
+
+/* 1. 자격증 등록 섹션 전체 컨테이너 */
+.qual-add-section {
+    width: 100%;
+    max-width: 650px; /* 입력 필드가 많으므로 마이페이지보다 살짝 여유로운 폭 설정 */
+    margin: 0 auto;
+    background-color: #ffffff;
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e4e6eb;
+    box-sizing: border-box;
+}
+
+/* 2. 타이틀 스타일 */
+.qual-add-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-top: 0;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #f0f2f5;
+    padding-bottom: 12px;
+}
+
+/* 3. 폼 레이아웃 */
+.qual-add-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* 4. 필수 입력 사항 별표 (*) */
+.required-star {
+    color: #ef4444; /* 강렬한 레드 포인트 */
+    font-weight: bold;
+    margin-left: 2px;
+}
+
+/* 5. 접수 일정 가로 나열용 행 (Row) 구조 조절 */
+.form-row {
+    display: flex;
+    gap: 16px; /* 시작일과 종료일 사이의 간격 */
+    width: 100%;
+}
+
+/* 가로 나열 시 내부 아이템들이 반반씩 균등하게 공간을 차지하도록 설정 */
+.form-row .flex-1 {
+    flex: 1;
+}
+
+/* 6. 메모용 텍스트 영역 (Textarea) 커스텀 */
+.form-textarea {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 0.95rem;
+    color: #1c1e21;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    background-color: #ffffff;
+    box-sizing: border-box;
+    resize: vertical; /* 사용자가 세로 크기만 조절할 수 있도록 제한 (가로 깨짐 방지) */
+    min-height: 100px;
+    font-family: inherit; /* 부모 font-family 승계 */
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* 텍스트 영역 포커스(클릭) 효과 */
+.form-textarea:focus {
+    outline: none;
+    border-color: #4f46e5; /* 퍼플 메인 컬러 */
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+/* 7. 날짜 선택창(input[type="date"]) 스타일 보정 */
+/* 크롬, 사파리 등에서 달력 아이콘 위치 및 날짜 입력 폼의 이질감을 줄여줍니다 */
+input[type="date"].form-input {
+    cursor: pointer;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* ==========================================
+   QualFavor (즐겨찾기 목록) 전용 테이블 스타일링
+   ========================================== */
+
+/* 1. 즐겨찾기 섹션 전체 컨테이너 */
+.favor-section {
+    width: 100%;
+    max-width: 1100px; /* 테이블 데이터가 한눈에 보이도록 넉넉한 너비 설정 */
+    margin: 0 auto;
+    background-color: #ffffff;
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e4e6eb;
+    box-sizing: border-box;
+}
+
+/* 2. 타이틀 및 상단 설명 텍스트 */
+.favor-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+}
+
+.favor-desc {
+    color: #65676b;
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+}
+
+/* 3. 모바일/소형 화면 대응을 위한 반응형 래퍼 */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto; /* 화면이 작아지면 깔끔하게 가로 스크롤 생성 */
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 4. 테이블 기본 구조 스타일링 */
+.favor-table {
+    width: 100%;
+    border-collapse: collapse; /* 테두리 겹침 방지 */
+    text-align: left;
+    vertical-align: middle;
+}
+
+/* 테이블 헤더(th)의 모든 칸을 가운데 정렬 */
+.favor-table .table-th {
+    padding: 14px 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #4b5563;
+    text-align: center;
+}
+
+/* 테이블 헤더 */
+.table-head {
+    background-color: #f8f9fa; /* 연한 회색 바탕 */
+    border-bottom: 2px solid #e4e6eb;
+}
+
+.table-th {
+    padding: 14px 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #4b5563;
+}
+
+/* 테이블 바디 및 행(Row) */
+.table-body .table-row {
+    border-bottom: 1px solid #edf0f5;
+    transition: background-color 0.2s ease;
+}
+
+/* 마우스 올렸을 때 행 하이라이트 효과 */
+.table-body .table-row:hover {
+    background-color: #f4f6f9; 
+}
+
+/* 테이블 셀 공통 */
+.table-td {
+    padding: 16px;
+    font-size: 0.95rem;
+    color: #1c1e21;
+}
+
+/* 테이블 본문(td)의 모든 칸을 가운데 정렬 */
+.favor-table .table-td {
+    padding: 16px;
+    font-size: 0.95rem;
+    color: #1c1e21;
+    text-align: center;
+}
+
+/* 중요 자격증 이름 강조 */
+.table-td.exam-name strong {
+    color: #1a1a1a;
+    font-weight: 600;
+}
+
+/* 정렬용 유틸리티 클래스 */
+.text-center {
+    text-align: center;
+}
+
+/* 5. 디데이(D-Day) 텍스트 커스텀 */
+.dday-text {
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+/* 시험 일정이 남았거나 당일일 때 (레드 계열 포인트) */
+.dday-text.alert-text {
+    color: #ef4444;
+    background-color: #fee2e2;
+}
+
+/* 일정 미정 또는 지나간 일정 (퍼플/그레이 계열) */
+.dday-text.normal-text {
+    color: #4f46e5;
+    background-color: #e0e7ff;
+}
+
+/* 6. 현재 상태 뱃지 (접수중, 접수대기 등) */
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #4f46e5;
+    background-color: rgba(79, 70, 229, 0.08); /* 연한 퍼플 잔상 효과 */
+    border: 1px solid rgba(79, 70, 229, 0.2);
+    border-radius: 20px; /* 동글동글한 알약 형태 뱃지 */
+}
+
+/* 7. 데이터 유실 및 공통 컴포넌트용 (기존 소스 중복 방지 안정화) */
+.highlight {
+    color: #4f46e5;
+    font-weight: 600;
+}
+
+.empty-message {
+    background-color: #ffffff;
+    border: 1px dashed #ced4da;
+    border-radius: 8px;
+    padding: 2.5rem;
+    text-align: center;
+    color: #8a8d91;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+/* ==========================================
+   QualList (자격증 목록 및 필터) 전용 스타일링
+   ========================================== */
+
+/* 1. 전체 섹션 레이아웃 */
+.quallist-section {
+    width: 100%;
+    max-width: 1200px; /* 테이블 가시성을 위해 와이드하게 설정 */
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+    box-sizing: border-box;
+}
+
+.quallist-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.02em;
+}
+
+/* 2. 상단 필터 컨트롤 박스 */
+.filter-container {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    background-color: #f9fafb;
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap; /* 모바일 반응형 대응 */
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.filter-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #4b5563;
+    white-space: nowrap;
+}
+
+/* 필터 입력창 공통 - input[type="date"]만 타겟팅 */
+.filter-date {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background-color: #ffffff;
+    color: #1f2937;
+    outline: none;
+    transition: all 0.15s ease-in-out;
+}
+
+/* 🌟 분야선택 select 박스 화살표 잘림 완벽 해결 버전 */
+.filter-select {
+    appearance: none; /* 브라우저 기본 화살표 제거 */
+    -webkit-appearance: none; /* 크롬/사파리 대응 */
+    -moz-appearance: none; /* 파이어폭스 대응 */
+    
+    padding: 0.5rem 2.25rem 0.5rem 0.75rem; /* 오른쪽에 화살표 배치용 공간 확보 */
+    font-size: 0.875rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    color: #1f2937;
+    outline: none;
+    transition: all 0.15s ease-in-out;
+
+    /* 고해상도 SVG 커스텀 화살표 배경 삽입 */
+    background-color: #ffffff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%234b5563' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center; /* 우측 끝에서 안전하게 정렬 */
+    background-size: 1rem;
+    cursor: pointer;
+}
+
+.filter-select:focus,
+.filter-date:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.filter-date-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.date-wave {
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+.filter-divider {
+    color: #e5e7eb;
+    font-weight: 300;
+}
+
+/* 3. 테이블 및 반응형 래퍼 */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto; /* 화면 좁아질 때 가로 스크롤 활성화 */
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background-color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.quallist-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.925rem;
+}
+
+/* 테이블 헤더 */
+.table-head {
+    background-color: #f9fafb;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.table-th {
+    padding: 14px 16px;
+    font-weight: 600;
+    color: #4b5563;
+    white-space: nowrap;
+}
+
+/* 테이블 바디 로우 */
+.table-row {
+    border-bottom: 1px solid #f3f4f6;
+    transition: background-color 0.15s ease;
+}
+
+.table-row:hover {
+    background-color: #f8fafc; /* 마우스 호버 시 부드러운 배경색 변경 */
+}
+
+.table-td {
+    padding: 14px 16px;
+    color: #374151;
+    vertical-align: middle;
+}
+
+.text-center {
+    text-align: center;
+}
+
+/* 4. 내비게이션 & 클릭 인터랙션 요소 */
+
+/* 즐겨찾기 별 버튼 */
+.btn-favorite {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    color: #d1d5db;
+    cursor: pointer;
+    transition: transform 0.1s ease, color 0.15s ease;
+    padding: 0;
+    line-height: 1;
+}
+
+.btn-favorite:hover {
+    transform: scale(1.2);
+    color: #9ca3af;
+}
+
+.btn-favorite.is-active {
+    color: #f59e0b; /* 활성화 시 토스/네이버풍 노란색 */
+}
+
+/* 자격증명 클릭 인터랙션 영역 */
+.exam-name {
+    min-width: 160px;
+}
+
+.clickable-qual-name {
+    display: inline-block;
+    cursor: pointer;
+    font-weight: 700 !important; /* 가시성 강조를 위한 굵기 보장 */
+    color: #1f2937 !important; /* 기본 상태에서는 차분하고 고급스러운 딥그레이 */
+    text-decoration: none !important; /* 기본 밑줄은 지우고 호버 시 노출 */
+    transition: color 0.15s ease-in-out;
+}
+
+.clickable-qual-name:hover {
+    color: #4f46e5 !important; /* 호버 시 세련된 인디고 블루 포인트 */
+    text-decoration: underline !important; /* 호버 시에만 깔끔하게 언더라인 노출 */
+}
+
+/* 분야 배지 */
+.qual-field-cell .field-badge {
+    display: inline-block;
+    background-color: #f3f4f6 !important;
+    padding: 4px 10px !important;
+    border-radius: 6px !important;
+    font-size: 0.8rem !important;
+    color: #4b5563 !important;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* 상태 배지 */
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 6px;
+    background-color: #e0e7ff;
+    color: #4338ca;
+    white-space: nowrap;
+}
+
+/* 일정 및 메모 */
+.date-period {
+    font-size: 0.85rem;
+    color: #6b7280;
+    white-space: nowrap;
+}
+
+.memo-cell {
+    max-width: 180px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* 너무 길면 ... 처리 */
+    color: #6b7280;
+}
+
+/* D-Day 태그 */
+.dday-tag {
+    display: inline-block;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+.dday-tag.is-urgent {
+    background-color: #fee2e2;
+    color: #dc2626; /* 남은 날짜는 경고 Red */
+}
+
+.dday-tag.is-overdue {
+    background-color: #f3f4f6;
+    color: #9ca3af; /* 지난 날짜는 얌전한 Grey */
+}
+
+/* 5. 관리 기능 버튼 레이아웃 */
+.action-buttons {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+}
+
+.btn-action {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+/* 수정 버튼 */
+.btn-edit {
+    background-color: #ffffff;
+    color: #4f46e5;
+    border: 1px solid #4f46e5;
+}
+
+.btn-edit:hover {
+    background-color: #4f46e5;
+    color: #ffffff;
+}
+
+/* 삭제 버튼 */
+.btn-delete {
+    background-color: #ffffff;
+    color: #ef4444;
+    border: 1px solid #ef4444;
+}
+
+.btn-delete:hover {
+    background-color: #ef4444;
+    color: #ffffff;
+}
+
+/* 6. 데이터가 없을 때 메시지 */
+.empty-message {
+    text-align: center;
+    padding: 4rem 0;
+    color: #9ca3af;
+    font-size: 0.95rem;
+    border: 2px dashed #e5e7eb;
+    border-radius: 12px;
+    background-color: #f9fafb;
+}
+
+/* ==========================================
+   QualSearch (자격증 API 검색) 전용 스타일링
+   ========================================== */
+
+/* 1. 검색 섹션 전체 컨테이너 */
+.search-section {
+    width: 100%;
+    max-width: 1000px; /* 카드 그리드를 여유 있게 배치하기 위한 너비 */
+    margin: 0 auto;
+    background-color: #ffffff;
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e4e6eb;
+    box-sizing: border-box;
+}
+
+.search-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-top: 0;
+    margin-bottom: 2rem;
+}
+
+/* 2. 상단 키워드 검색바 레이아웃 */
+.search-bar-container {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    margin-bottom: 1.5rem;
+}
+
+.search-input {
+    flex: 1;
+    padding: 14px 18px !important;
+    font-size: 1rem !important;
+    border-radius: 8px;
+}
+
+.search-button {
+    width: 120px !important;
+    margin-top: 0 !important; /* 기존 대시보드 마진 상쇄 */
+    font-size: 1rem !important;
+    white-space: nowrap;
+}
+
+/* 3. 관심 계열 필터 체크박스 박스 */
+.series-filter-box {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #edf0f5;
+    margin-bottom: 2.5rem;
+}
+
+.filter-box-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #4b5563;
+    margin-top: 0;
+    margin-bottom: 14px;
+}
+
+/* 체크박스 정렬 그룹 */
+.checkbox-group {
+    display: flex;
+    flex-wrap: wrap; /* 화면 폭에 맞춰 자동 줄바꿈 */
+    gap: 16px 24px;
+}
+
+/* 체크박스 개별 라벨 라벨 */
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* 체크박스 자체 디자인 보정 */
+.filter-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #4f46e5; /* 모던 브라우저에서 메인 퍼플 컬러 반영 */
+}
+
+.checkbox-text {
+    font-size: 0.95rem;
+    color: #1c1e21;
+    font-weight: 500;
+}
+
+/* 4. 상태메시지 (로딩, 에러) */
+.status-message {
+    text-align: center;
+    padding: 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.loading-text {
+    color: #4f46e5;
+    background-color: #e0e7ff;
+    animation: pulse 2s infinite ease-in-out;
+}
+
+.error-text {
+    color: #ef4444;
+    background-color: #fee2e2;
+}
+
+/* 5. 결과 카드 리스트 그리드 레이아웃 */
+.search-result-grid {
+    display: grid;
+    /* 기본적으로 반응형 격자 구조 배치 (최소 너비 280px 체제) */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    width: 100%;
+}
+
+/* 개별 자격증 카드 컴포넌트 */
+.result-card {
+    background-color: #ffffff;
+    border: 1px solid #e4e6eb;
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* 내부 텍스트와 하단 버튼의 균형 */
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+/* 카드 마우스 호버 효과 */
+.result-card:hover {
+    transform: translateY(-4px);
+    border-color: #c7d2fe;
+    box-shadow: 0 8px 24px rgba(79, 70, 229, 0.06);
+}
+
+.card-main {
+    margin-bottom: 18px;
+}
+
+/* 카드 내 제목 */
+.result-card-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-top: 0;
+    margin-bottom: 14px;
+    line-height: 1.4;
+}
+
+/* 상세 명세 내부 구조 */
+.result-card-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.detail-item {
+    font-size: 0.88rem;
+    margin: 0;
+    display: flex;
+    gap: 6px;
+    line-height: 1.4;
+}
+
+.detail-label {
+    color: #65676b;
+    font-weight: 500;
+    min-width: 55px; /* 타이틀 라벨 정렬용 고정폭 */
+}
+
+.detail-value {
+    color: #1c1e21;
+    font-weight: 600;
+}
+
+/* 6. 내 목록에 추가 버튼 (카드 바닥 고정형) */
+.btn-add-list {
+    width: 100%;
+    padding: 10px;
+    background-color: #ffffff;
+    color: #4f46e5;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 1px solid #c7d2fe;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.btn-add-list:hover {
+    background-color: #4f46e5;
+    color: #ffffff;
+    border-color: #4f46e5;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+}
+
+.btn-add-list:active {
+    transform: scale(0.98);
+}
+
+/* 애니메이션용 유틸리티 */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* ==========================================
+   QualModify (자격증 정보 수정) 전용 스타일링
+   ========================================== */
+
+/* 1. 수정 폼 전체 컨테이너 */
+.qual-modify-container {
+    width: 100%;
+    max-width: 650px; /* 입력 폼이 과도하게 퍼지지 않도록 안정적인 최대 폭 설정 */
+    margin: 0 auto;
+    background-color: #ffffff;
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e4e6eb;
+    box-sizing: border-box;
+}
+
+/* 2. 타이틀 및 서브 텍스트 (ID 표시) */
+.qual-modify-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-top: 0;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.qual-modify-title .qual-id {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #8a8d91;
+}
+
+/* 3. 폼 내부 구조 구성 */
+.qual-modify-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* 컴포넌트 간 간격을 여유 있게 배치 */
+}
+
+/* 개별 입력 그룹 레이아웃 */
+.qual-modify-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* 라벨 스타일 통일 */
+.qual-modify-form .form-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #4b5563;
+}
+
+/* 4. 입력 필드 (텍스트, 날짜 공통) 스타일링 */
+.qual-modify-form .form-input {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    color: #1c1e21;
+    background-color: #ffffff;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* 포커스 시 인디고 블루 하이라이트 효과 */
+.qual-modify-form .form-input:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* 5. 메모 전용 Textarea 스타일링 */
+.qual-modify-form .form-textarea {
+    width: 100%;
+    min-height: 110px; /* 적당한 메모 영역 확보 */
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    color: #1c1e21;
+    background-color: #ffffff;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    box-sizing: border-box;
+    resize: vertical; /* 세로 크기 조절만 허용하여 레이아웃 깨짐 방지 */
+    font-family: inherit; /* 부모 폰트 상속 */
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.qual-modify-form .form-textarea:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* 6. 하단 액션 버튼 그룹 레이아웃 */
+.qual-modify-form .form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; /* 우측 정렬 */
+    gap: 12px;
+    margin-top: 15px; /* 컴포넌트 내부 inline 스타일 완벽 대체 */
+}
+
+/* 공통 버튼 프레임 */
+.qual-modify-form .btn {
+    padding: 12px 24px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+}
+
+/* 수정완료 버튼 (메인 인디고 컬러) */
+.qual-modify-form .btn-submit {
+    background-color: #4f46e5;
+    color: #ffffff;
+}
+
+.qual-modify-form .btn-submit:hover {
+    background-color: #4338ca;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+}
+
+/* 취소 버튼 (차분한 그레이 무드) */
+.qual-modify-form .btn-cancel {
+    background-color: #f3f4f6;
+    color: #4b5563;
+    border-color: #e5e7eb;
+}
+
+.qual-modify-form .btn-cancel:hover {
+    background-color: #e5e7eb;
+    color: #1f2937;
+}
+
+.qual-modify-form .btn:active {
+    transform: scale(0.98);
+}
+
+/* ==========================================
+   QualDetail (자격증 상세 정보) 전용 스타일링
+   ========================================== */
+
+/* 1. 상세 보기 전체 컨테이너 */
+.qual-detail-container {
+    width: 100%;
+    max-width: 650px; /* Add, Modify 컴포넌트와 동일한 본문 너비 레이아웃 매칭 */
+    margin: 0 auto;
+    background-color: #ffffff;
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e4e6eb;
+    box-sizing: border-box;
+}
+
+/* 데이터 예외 처리 시 빈 컨테이너 정렬 디자인 */
+.qual-detail-container.is-empty {
+    text-align: center;
+    padding: 3rem 2.5rem;
+}
+
+/* 2. 상단 헤더 영역 */
+.qual-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #1a1a1a; /* 선명하고 직관적인 헤더 구분 border 선 */
+    padding-bottom: 12px;
+}
+
+.qual-detail-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.qual-detail-title .qual-id {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #8a8d91;
+    margin-left: 4px;
+}
+
+/* 관심 자격증 스타 마크 */
+.detail-favorite-badge {
+    color: #fbc02d;
+    font-size: 1.6rem;
+    line-height: 1;
+}
+
+/* 3. 본문 상세 리스트 배치 구조 */
+.qual-detail-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px; /* 로우(row) 간격을 깔끔하게 밀착 */
+}
+
+/* 개별 정보 행 정의 */
+.detail-group {
+    display: flex;
+    padding: 14px 4px;
+    border-bottom: 1px solid #f0f2f5; /* 부드러운 토스풍 회색 선으로 경계 구분 */
+    font-size: 0.98rem;
+    line-height: 1.5;
+}
+
+/* 수직 정렬 보정 유틸리티 */
+.detail-group.align-center {
+    align-items: center;
+}
+
+/* 메모 전용 세로 배치 구조 */
+.detail-group.direction-column {
+    flex-direction: column;
+    gap: 10px;
+    border-bottom: none; /* 메모가 마지막 항목이므로 하단 선 제거 */
+    padding-bottom: 0;
+}
+
+/* 왼쪽 항목 라벨 */
+.detail-label {
+    width: 140px; /* 텍스트가 정렬을 깨트리지 않도록 일정한 좌측 고정 너비 제공 */
+    flex-shrink: 0;
+    font-weight: 600;
+    color: #4b5563;
+}
+
+/* 오른쪽 실제 매핑 값 */
+.detail-value {
+    color: #1c1e21;
+    flex: 1;
+}
+
+/* 상태 배지와 디데이를 묶는 래퍼 */
+.badge-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 4. 하단 텍스트 메모 상자 */
+.detail-memo-box {
+    background-color: #f8f9fa;
+    padding: 18px 20px;
+    border-radius: 8px;
+    min-height: 90px;
+    white-space: pre-wrap; /* 사용자가 줄 바꿈 한 형태 그대로 보존 */
+    border: 1px solid #e5e7eb;
+    color: #374151;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* 5. 하단 제어 버튼 영역 */
+.qual-detail-container .form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 2.5rem;
+}
+
+.qual-detail-container .form-actions.align-center {
+    justify-content: center; /* 돌아가기 버튼 중앙 배치 */
+}
+
+/* 목록으로 돌아가기 버튼 (그레이 액션 버튼) */
+.qual-detail-container .btn-cancel {
+    padding: 12px 28px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    background-color: #f3f4f6;
+    color: #4b5563;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+}
+
+.qual-detail-container .btn-cancel:hover {
+    background-color: #e5e7eb;
+    color: #1f2937;
+}
+
+.qual-detail-container .btn-cancel:active {
+    transform: scale(0.98);
+}
