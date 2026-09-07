@@ -152,3 +152,5 @@ git config --global user.name "Seonghyeok"
 
 git config --list
 git log
+git remote add origin https://github.com/neonunu/dm.git
+git push -u origin main
