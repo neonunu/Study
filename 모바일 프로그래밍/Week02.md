@@ -150,7 +150,195 @@ git config --global user.name "Seonghyeok"
 
 > 참고: `--glibal`이 아니라 `--global`이 올바른 명령어이다.
 
+# Git 기본 명령어
+
+## 저장소 시작
+
+```bash
+git init
+```
+
+현재 폴더를 Git 저장소로 만든다.
+
+```bash
+git status
+```
+
+현재 변경사항을 확인한다.
+
+---
+
+## 사용자 설정
+
+```bash
+git config --global user.name "이름"
+git config --global user.email "abc@example.com"
+```
+
+설정 확인:
+
+```bash
 git config --list
-git log
+```
+
+---
+
+## 파일 저장
+
+```bash
+git add .
+```
+
+현재 폴더의 변경사항을 Staging Area에 올린다.
+
+```bash
+git commit -m "git basics"
+```
+
+변경사항을 하나의 커밋으로 저장한다.
+
+* `-m` : 커밋 메시지 작성
+
+---
+
+## 브랜치
+
+```bash
+git branch
+```
+
+브랜치 목록 확인.
+
+```bash
+git branch -M main
+```
+
+현재 브랜치 이름을 `main`으로 강제 변경한다.
+
+* `-m` : 브랜치 이름 변경
+* `-M` : 브랜치 이름 강제 변경
+
+---
+
+## GitHub 연결
+
+```bash
 git remote add origin https://github.com/neonunu/dm.git
+```
+
+로컬 저장소와 GitHub 저장소를 연결한다.
+
+```bash
+git remote -v
+```
+
+연결된 원격 저장소를 확인한다.
+
+---
+
+## GitHub 업로드
+
+처음 업로드:
+
+```bash
 git push -u origin main
+```
+
+* `-u` : 현재 브랜치와 원격 브랜치를 연결
+* `origin` : 원격 저장소 이름
+* `main` : 업로드할 브랜치
+
+이후에는:
+
+```bash
+git push
+```
+
+만 사용하면 된다.
+
+---
+
+## GitHub에서 가져오기
+
+```bash
+git pull
+```
+
+원격 저장소의 변경사항을 가져와 현재 브랜치에 합친다.
+
+```bash
+git fetch
+```
+
+변경사항을 가져오기만 하고 자동으로 합치지는 않는다.
+
+```text
+fetch = 가져오기
+pull  = 가져오기 + merge
+```
+
+---
+
+## 기록 확인
+
+```bash
+git log
+```
+
+커밋 기록을 확인한다.
+
+```bash
+git log --oneline
+```
+
+커밋 기록을 한 줄씩 간단하게 확인한다.
+
+---
+
+## 변경사항 확인
+
+```bash
+git diff
+```
+
+수정된 코드의 차이를 확인한다.
+
+---
+
+## Patch
+
+`git patch`라는 기본 명령어는 없다.
+
+Patch 파일 생성:
+
+```bash
+git diff > change.patch
+```
+
+Patch 적용:
+
+```bash
+git apply change.patch
+```
+
+---
+
+## 자주 사용하는 흐름
+
+```bash
+git status
+git add .
+git commit -m "수정 내용"
+git push
+```
+
+처음 GitHub에 올릴 때:
+
+```bash
+git init
+git branch -M main
+git remote add origin https://github.com/neonunu/dm.git
+git add .
+git commit -m "first commit"
+git push -u origin main
+```
