@@ -1079,6 +1079,135 @@ This is a search function
 Update Function is here
 ```
 
+
+- [6. 실습 예제](#6-실습-예제)
+- [7. add·sub·mul 라이브러리 실습](#7-addsubmul-라이브러리-실습)
+- [8. UTM에서 맥으로 복사와 ZIP 제출](#8-utm에서-맥으로-복사와-zip-제출)
+
+- 반복적인 컴파일과 링크 작업을 의존 관계에 따라 자동 처리하는 make의 활용
+
+## 7. add·sub·mul 라이브러리 실습
+
+덧셈 `add(+)`, 뺄셈 `sub(-)`, 곱셈 `mul(*)`을 제공하는 정적·공유 라이브러리 제작 실습
+
+### 7.1 작업 폴더와 파일 구성
+
+이미 만든 `lib` 폴더 안에서 진행하는 예시, 현재 `lib` 안이면 이동 명령 생략
+
+```bash
+cd lib  # 현재 위치 아래에 있는 lib 폴더로 이동
+```
+
+```text
+lib/
+├── calc.h  # 직접 작성하는 함수 선언용 헤더
+├── calc.c  # add·sub·mul 함수 구현
+└── main.c  # 라이브러리 함수를 사용하는 프로그램
+```
+
+### 7.2 함수 선언과 구현
+
+`calc.h`
+
+```c
+// 여러 C 소스에서 공유하는 함수 이름, 매개변수, 반환형 선언
+int add(int a, int b);  // calc.c에 구현된 덧셈 함수 선언
+int sub(int a, int b);  // calc.c에 구현된 뺄셈 함수 선언
+int mul(int a, int b);  // calc.c에 구현된 곱셈 함수 선언
+```
+
+`calc.c`
+
+```c
+#include "calc.h"  // 같은 폴더에 직접 작성한 calc.h의 함수 선언 포함
+
+int add(int a, int b)
+{
+    return a + b;  // 덧셈 결과 반환
+}
+
+int sub(int a, int b)
+{
+    return a - b;  // 뺄셈 결과 반환
+}
+
+int mul(int a, int b)
+{
+    return a * b;  // 곱셈 결과 반환
+}
+```
+
+`main.c`
+
+```c
+#include <stdio.h>  // C 개발 환경이 제공하는 표준 입출력 헤더, printf 선언
+#include "calc.h"   // 직접 작성한 add·sub·mul 함수 선언 포함
+
+int main(void)  // 프로그램 시작 함수, int: 종료 상태 반환, void: 매개변수 없음
+{
+    printf("add(8, 2) = %d\n", add(8, 2));  // 덧셈 결과 출력
+    printf("sub(8, 2) = %d\n", sub(8, 2));  // 뺄셈 결과 출력
+    printf("mul(8, 2) = %d\n", mul(8, 2));  // 곱셈 결과 출력
+    return 0;  // 정상 종료 상태 반환
+}
+```
+
+### 7.3 정적 라이브러리 생성과 실행
+
+`lib` 폴더 안에서 순서대로 실행하는 명령
+
+```bash
+gcc -c calc.c -o calc.o  # -c: 링크 없이 .o 생성, -o: 출력 이름 calc.o 지정
+ar rcs libcalc.a calc.o  # r: 삽입·교체, c: 생성 경고 억제, s: 심볼 인덱스 생성
+gcc main.c ./libcalc.a -o main_static  # .a의 필요한 코드를 포함하여 실행 파일 main_static 생성
+./main_static  # 현재 폴더의 정적 라이브러리 사용 프로그램 실행
+```
+
+- `ar`: 오브젝트 파일을 묶어 정적 라이브러리 `.a`를 생성하는 도구
+- 정적 링킹: 링커가 `.a`의 필요한 코드를 실행 파일에 포함하는 과정
+- 실행 시 `libcalc.a`의 별도 제공 불필요
+- 위 예시는 `calc` 라이브러리 코드의 정적 포함, C 표준 라이브러리 등의 다른 동적 의존성은 존재 가능
+
+### 7.4 공유 라이브러리 생성과 실행
+
+같은 `lib` 폴더에서 진행하는 공유 라이브러리 제작
+
+```bash
+gcc -fPIC -c calc.c -o calc_pic.o  # -fPIC: 위치 독립 코드, -c: 링크 없이 .o 생성, -o: 출력 이름 지정
+gcc -shared -o libcalc.so calc_pic.o  # -shared: 공유 라이브러리 생성, -o: 이름 libcalc.so 지정
+gcc main.c -L. -lcalc -o main_shared  # -L.: 현재 폴더에서 검색, -lcalc: libcalc.so 링크, -o: 실행 파일 이름 지정
+LD_LIBRARY_PATH="$PWD${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" ./main_shared  # 이번 실행의 .so 검색 경로에 현재 폴더 추가
+```
+
+- `libcalc.a`와 `libcalc.so`가 모두 있는 위 예시에서 `-lcalc`는 공유 라이브러리 선택
+- 실행 시 `libcalc.so`의 로딩과 연결 필요
+- `LD_LIBRARY_PATH`의 위 설정은 해당 명령 실행에만 적용
+- 정적·공유 라이브러리 생성 옵션의 기준: [GCC 링크 옵션](https://gcc.gnu.org/onlinedocs/gcc/Link-Options.html)
+
+두 프로그램의 실행 결과
+
+```text
+add(8, 2) = 10
+sub(8, 2) = 6
+mul(8, 2) = 16
+```
+
+## 8. UTM에서 맥으로 복사와 ZIP 제출
+
+UTM의 Ubuntu 가상머신에서 만든 `lib` 폴더를 본 노트북인 맥으로 복사하고 압축하는 순서
+
+### 8.1 맥에서 공유 폴더 생성
+
+1. Finder에서 `다운로드` 폴더 열기
+2. `Command + Shift + N`으로 새 폴더 생성
+3. 폴더 이름을 `UTM공유`로 지정
+
+`UTM공유`: 우분투에서 복사한 파일을 받기 위해 맥에 직접 만드는 폴더
+
+### 8.2 UTM 공유 설정
+
+가상머신이 실행 중이면 우분투에서 종료 후 설정 진행
+
 - 변경된 `update.c`만 다시 컴파일하여 `update.o` 생성
 - `update.o`에 의존하는 `main` 실행 파일 재링크
 - 변경되지 않은 `main.o`, `search.o` 재사용
