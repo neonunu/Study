@@ -243,28 +243,28 @@ flowchart LR
     C -->|"DELETE · 삭제"| S
 ```
 
-HTML의 `<form>`은 기본적으로 `GET`과 `POST`를 사용한다.  
-`PUT`, `PATCH`, `DELETE`는 JavaScript의 `fetch()` 또는 Framework 기능을 사용해서 전송한다.
+- HTML의 `<form>`: 기본적으로 `GET`과 `POST` 사용
+- `PUT`, `PATCH`, `DELETE`: JavaScript의 `fetch()` 또는 Framework 기능으로 전송
 
 ---
 
 ## 5. Servlet Controller와 Package
 
-Controller 패키지 이름은 직접 정할 수 있다.
+Controller 패키지 이름은 직접 정할 수 있음
 
 ```java
 package controller;
 ```
 
-또는 다음과 같이 사용할 수 있다.
+또는 다음과 같이 사용할 수 있음
 
 ```java
 package com.example.controller;
 ```
 
-하지만 Servlet 클래스를 만들려면 `HttpServlet`을 상속해야 한다.
+하지만 Servlet 클래스를 만들려면 `HttpServlet`을 상속해야 함
 
-Tomcat 10.1에서는 `jakarta.servlet` 패키지를 사용한다.
+Tomcat 10.1에서는 `jakarta.servlet` 패키지를 사용함
 
 ```java
 package controller;
@@ -336,7 +336,7 @@ Tomcat 9 이하
 → javax.servlet.http.HttpServlet
 ```
 
-Tomcat 10.1을 사용하고 있으므로 `jakarta.servlet`을 사용하면 된다.
+Tomcat 10.1을 사용하고 있으므로 `jakarta.servlet`을 사용하면 됨
 
 ### Servlet 요청 흐름
 
@@ -367,7 +367,7 @@ A 계좌에서 B 계좌로 10,000원 송금
 2. B 계좌에 10,000원 추가
 ```
 
-두 작업은 반드시 모두 성공하거나 모두 취소돼야 한다.
+두 작업은 반드시 모두 성공하거나 모두 취소돼야 함
 
 ```mermaid
 flowchart TD
@@ -460,7 +460,7 @@ flowchart LR
     V2 -->|"참조"| O2
 ```
 
-`p1`과 `p2`는 서로 다른 객체를 참조한다.
+`p1`과 `p2`는 서로 다른 객체를 참조함
 
 ---
 
@@ -573,7 +573,7 @@ flowchart TD
     C -->|"오버라이딩 메서드 실행"| CS["sound() → 야옹"]
 ```
 
-업캐스팅과 다운캐스팅은 상속 관계에서 사용하는 형변환이며 다형성과 관련된 개념이다.
+업캐스팅과 다운캐스팅은 상속 관계에서 사용하는 형변환이며 다형성과 관련된 개념
 
 ```text
 다형성
@@ -661,7 +661,7 @@ Person s1 = new Student();
 실제 객체 : Student
 ```
 
-자동으로 형변환되므로 `(Person)`을 생략할 수 있다.
+자동으로 형변환되므로 `(Person)`을 생략할 수 있음
 
 ```java
 s1.name = "홍길동"; // 가능
@@ -671,7 +671,7 @@ s1.eat();          // 가능
 s1.sn = "12345";   // 컴파일 오류
 ```
 
-실제 객체는 `Student`지만 참조 변수 타입이 `Person`이므로 `Person`에 선언된 멤버까지만 접근할 수 있다.
+실제 객체는 `Student`지만 참조 변수 타입이 `Person`이므로 `Person`에 선언된 멤버까지만 접근할 수 있음
 
 ### 다운캐스팅
 
@@ -686,7 +686,7 @@ s2.eat();          // 가능
 s2.sn = "12345";   // 가능
 ```
 
-다운캐스팅은 자동으로 처리되지 않기 때문에 `(Student)`를 직접 작성해야 한다.
+다운캐스팅은 자동으로 처리되지 않기 때문에 `(Student)`를 직접 작성해야 함
 
 ### 오류 코드
 
@@ -696,7 +696,7 @@ Person s1 = new Student();
 Student s2 = s1; // 컴파일 오류
 ```
 
-`Person` 타입이 항상 `Student` 객체를 가리킨다고 보장할 수 없기 때문에 자동 다운캐스팅은 불가능하다.
+`Person` 타입이 항상 `Student` 객체를 가리킨다고 보장할 수 없기 때문에 자동 다운캐스팅은 불가능
 
 ### 상속·참조·멤버 구조
 
@@ -741,7 +741,7 @@ if (person instanceof Student) {
 }
 ```
 
-실제 객체가 `Student`가 아닌데 강제로 다운캐스팅하면 `ClassCastException`이 발생한다.
+실제 객체가 `Student`가 아닌데 강제로 다운캐스팅하면 `ClassCastException`이 발생함
 
 ```java
 Person person = new Person();
@@ -763,7 +763,7 @@ Person p2 = new Person();
 System.out.println(p1 == p2); // false
 ```
 
-`p1`과 `p2`는 서로 다른 객체를 참조한다.
+`p1`과 `p2`는 서로 다른 객체를 참조함
 
 ### 싱글톤 클래스
 
@@ -832,7 +832,7 @@ public static Singleton getInstance() {
 
 같은 클래스 안에서 같은 이름의 메서드를 여러 개 선언하는 것
 
-메서드 이름은 같아도 매개변수의 다음 항목 중 하나 이상이 달라야 한다.
+메서드 이름은 같아도 매개변수의 다음 항목 중 하나 이상이 달라야 함
 
 ```text
 1. 매개변수 개수
@@ -840,7 +840,7 @@ public static Singleton getInstance() {
 3. 매개변수 타입의 순서
 ```
 
-반환 타입과 매개변수 이름은 오버로딩 판단 기준이 아니다.
+오버로딩 판단 기준에서 반환 타입과 매개변수 이름은 제외
 
 ### 가능한 코드
 
@@ -906,14 +906,14 @@ void eat(int b, int a) { // 컴파일 오류
 }
 ```
 
-둘 다 메서드 구조는 같다.
+둘 다 메서드 구조는 같음
 
 ```text
 eat(int, int)
 eat(int, int)
 ```
 
-매개변수 이름은 오버로딩 판단 기준이 아니므로 컴파일 오류가 발생한다.
+매개변수 이름은 오버로딩 판단 기준이 아니므로 컴파일 오류가 발생함
 
 ### 오버로딩 가능 여부
 
@@ -997,7 +997,7 @@ person.eat(); // 학생이 먹는다
 
 부모 메서드를 오버라이딩한다는 표시
 
-메서드 이름이나 매개변수를 잘못 작성하면 컴파일 오류로 확인할 수 있기 때문에 사용하는 것이 좋다.
+메서드 이름이나 매개변수를 잘못 작성하면 컴파일 오류로 확인할 수 있기 때문에 사용하는 것이 좋음
 
 ### 오버라이딩이 아닌 경우
 
@@ -1020,7 +1020,7 @@ Person  : eat()
 Student : eat(int)
 ```
 
-매개변수가 다르기 때문에 오버라이딩이 아니라 상속 관계에서 새로운 오버로드 메서드를 추가한 것이다.
+매개변수가 다르기 때문에 오버라이딩이 아니라 상속 관계에서 새로운 오버로드 메서드를 추가한 것
 
 ---
 

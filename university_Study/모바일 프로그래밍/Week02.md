@@ -1,6 +1,6 @@
 # Kotlin
 
-Kotlin은 **JetBrains가 만든 JVM 기반 프로그래밍 언어**이다.
+**Kotlin**: JetBrains가 만든 JVM 기반 프로그래밍 언어
 
 주요 특징:
 
@@ -12,27 +12,27 @@ Kotlin은 **JetBrains가 만든 JVM 기반 프로그래밍 언어**이다.
 
 ### Null Safety
 
-Java는 `null` 객체를 잘못 사용하면 `NullPointerException`이 발생할 수 있다.
+Java는 `null` 객체를 잘못 사용하면 `NullPointerException`이 발생할 수 있음
 
 ```java
 String name = null;
 name.length(); // NullPointerException
 ```
 
-Kotlin은 null 가능성을 타입으로 구분한다.
+Kotlin은 null 가능성을 타입으로 구분함
 
 ```kotlin
 var name: String? = null
 println(name?.length)
 ```
 
-즉, **Java의 불편한 점을 개선하면서 Java 생태계를 그대로 활용할 수 있는 언어**라고 볼 수 있다.
+즉, **Java의 불편한 점을 개선하면서 Java 생태계를 그대로 활용할 수 있는 언어**라고 볼 수 있음
 
 git-scm.com
 
 ## `git branch -M main`
 
-현재 브랜치의 이름을 `main`으로 변경하는 명령어이다.
+현재 브랜치의 이름을 `main`으로 변경하는 명령어
 
 ```bash
 git branch -M main
@@ -55,11 +55,11 @@ git init          = Git 저장소 생성
 git branch -M main = 기본 브랜치 이름을 main으로 변경
 ```
 
-`main`은 현재 GitHub에서 기본 브랜치 이름으로 많이 사용된다.
+`main`은 현재 GitHub에서 기본 브랜치 이름으로 많이 사용됨
 
 ## `git add`
 
-변경된 파일을 **커밋할 준비 상태(Staging Area)**에 올리는 명령어이다.
+변경된 파일을 **커밋할 준비 상태(Staging Area)**에 올리는 명령어
 
 ```bash
 git add 파일명
@@ -90,13 +90,13 @@ git add .
 git add .
 ```
 
-은 **현재 폴더와 하위 폴더의 변경사항을 추가**한다는 뜻이다.
+은 **현재 폴더와 하위 폴더의 변경사항을 추가**한다는 뜻
 
 ---
 
 ## `git commit`
 
-Staging Area에 올라간 변경사항을 하나의 버전으로 저장한다.
+Staging Area에 올라간 변경사항을 하나의 버전으로 저장함
 
 ```bash
 git commit -m "git basics"
@@ -122,7 +122,7 @@ git commit -m "git basics"
 
 ## Git 사용자 정보 설정
 
-Git에서 커밋한 사람이 누구인지 설정한다.
+Git에서 커밋한 사람이 누구인지 설정함
 
 ### 이메일
 
@@ -136,9 +136,9 @@ git config --global user.email "abc@example.com"
 git config --global user.name "Hong Gil Dong"
 ```
 
-여기서 이름은 **GitHub 아이디가 아니라 커밋에 표시할 이름**이다.
+여기서 이름은 **GitHub 아이디가 아니라 커밋에 표시할 이름**임
 
-본명, 영어 이름, 닉네임 등을 사용할 수 있다.
+본명, 영어 이름, 닉네임 등을 사용할 수 있음
 
 예:
 
@@ -146,9 +146,9 @@ git config --global user.name "Hong Gil Dong"
 git config --global user.name "Seonghyeok"
 ```
 
-`--global`은 이 컴퓨터의 모든 Git 프로젝트에 같은 설정을 적용한다는 뜻이다.
+`--global`은 이 컴퓨터의 모든 Git 프로젝트에 같은 설정을 적용한다는 뜻
 
-> 참고: `--glibal`이 아니라 `--global`이 올바른 명령어이다.
+> 참고: 올바른 옵션은 `--glibal`이 아닌 `--global`
 
 # Git 기본 명령어
 
@@ -158,13 +158,13 @@ git config --global user.name "Seonghyeok"
 git init
 ```
 
-현재 폴더를 Git 저장소로 만든다.
+현재 폴더를 Git 저장소로 만듦
 
 ```bash
 git status
 ```
 
-현재 변경사항을 확인한다.
+현재 변경사항을 확인함
 
 ---
 
@@ -189,13 +189,13 @@ git config --list
 git add .
 ```
 
-현재 폴더의 변경사항을 Staging Area에 올린다.
+현재 폴더의 변경사항을 Staging Area에 추가
 
 ```bash
 git commit -m "git basics"
 ```
 
-변경사항을 하나의 커밋으로 저장한다.
+변경사항을 하나의 커밋으로 저장함
 
 * `-m` : 커밋 메시지 작성
 
@@ -213,7 +213,7 @@ git branch
 git branch -M main
 ```
 
-현재 브랜치 이름을 `main`으로 강제 변경한다.
+현재 브랜치 이름을 `main`으로 강제 변경함
 
 * `-m` : 브랜치 이름 변경
 * `-M` : 브랜치 이름 강제 변경
@@ -226,13 +226,13 @@ git branch -M main
 git remote add origin https://github.com/neonunu/dm.git
 ```
 
-로컬 저장소와 GitHub 저장소를 연결한다.
+로컬 저장소와 GitHub 저장소를 연결함
 
 ```bash
 git remote -v
 ```
 
-연결된 원격 저장소를 확인한다.
+연결된 원격 저장소를 확인함
 
 ---
 
@@ -254,7 +254,7 @@ git push -u origin main
 git push
 ```
 
-만 사용하면 된다.
+만 사용하면 됨
 
 ---
 
@@ -264,13 +264,13 @@ git push
 git pull
 ```
 
-원격 저장소의 변경사항을 가져와 현재 브랜치에 합친다.
+원격 저장소의 변경사항을 가져와 현재 브랜치에 합침
 
 ```bash
 git fetch
 ```
 
-변경사항을 가져오기만 하고 자동으로 합치지는 않는다.
+변경사항을 가져오기만 하고 자동으로 합치지는 않음
 
 ```text
 fetch = 가져오기
@@ -285,13 +285,13 @@ pull  = 가져오기 + merge
 git log
 ```
 
-커밋 기록을 확인한다.
+커밋 기록을 확인함
 
 ```bash
 git log --oneline
 ```
 
-커밋 기록을 한 줄씩 간단하게 확인한다.
+커밋 기록을 한 줄씩 간단하게 확인함
 
 ---
 
@@ -301,13 +301,13 @@ git log --oneline
 git diff
 ```
 
-수정된 코드의 차이를 확인한다.
+수정된 코드의 차이를 확인함
 
 ---
 
 ## Patch
 
-`git patch`라는 기본 명령어는 없다.
+`git patch`라는 기본 명령어는 없음
 
 Patch 파일 생성:
 
