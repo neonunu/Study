@@ -85,7 +85,7 @@ Servlet Container
 └── 여러 요청을 Thread로 처리
 ```
 
-### Servlet 객체는 Singleton인가?
+### Servlet 객체의 Singleton 여부
 
 일반적으로 Servlet 선언 하나당 객체 하나 생성
 

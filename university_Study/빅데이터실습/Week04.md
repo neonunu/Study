@@ -33,7 +33,7 @@ import numpy as np
 
 원자료 → 필요한 행·열 추출 → 집단별 요약
 
-예를 들어 1·2반의 영어 점수만 추출한 뒤 반별 평균을 구하면 다음과 같은 요약표를 만들 수 있습니다.
+예를 들어 1·2반의 영어 점수만 추출한 뒤 반별 평균을 구하면 다음과 같은 요약표를 만들 수 있음
 
 | nclass | 영어 평균 |
 | --- | --- |
@@ -63,7 +63,8 @@ import numpy as np
 - SQL : "SELECT * FROM exam WHERE nclass = 1"
 - row를 줄이는 과정
 
-**행 추출:** `query('nclass == 1')`은 `nclass` 값이 1인 행을 남기고, 다른 반의 행은 제외합니다. 열 구성은 유지됩니다.
+- **행 추출:** `query('nclass == 1')`은 `nclass` 값이 1인 행을 남기고, 다른 반의 행은 제외함
+- 열 구성은 유지됨
 
 ```python
 import pandas as pd
@@ -586,7 +587,8 @@ np.float64(22.50943396226415)
 - `df['컬럼 이름']`
 - column을 줄이는 과정
 
-**열 추출:** `exam[["nclass", "english"]]`은 반과 영어 점수 열만 남깁니다. 행은 그대로 유지되며 결과는 데이터프레임입니다.
+- **열 추출:** `exam[["nclass", "english"]]`은 반과 영어 점수 열만 남김
+- 행은 그대로 유지되며 결과는 데이터프레임
 
 ```python
 #수학성적 추출
@@ -946,7 +948,8 @@ np.float64(20.127659574468087)
 - `df.sort_values()`
 - `df.sort_values('컬럼이름', ascending = True | False)`
 
-**정렬:** 정렬 기준 열을 지정하면 그 값의 순서에 따라 행 전체의 위치가 바뀝니다. 예를 들어 `science`를 내림차순으로 정렬하면 과학 점수가 높은 행부터 배치되며, 각 행의 다른 값도 함께 이동합니다.
+- **정렬:** 정렬 기준 열을 지정하면 그 값의 순서에 따라 행 전체의 위치가 바뀜
+- 예를 들어 `science`를 내림차순으로 정렬하면 과학 점수가 높은 행부터 배치되며, 각 행의 다른 값도 함께 이동함
 
 ```python
 exam = pd.read_csv("exam.csv")
@@ -1152,7 +1155,9 @@ mpg.query('manufacturer == "audi"').sort_values('hwy', ascending=False).head(5)
 
 - `df.assign(컬럼이름 = 함수)`
 
-**파생변수 추가:** 기존 열로 계산한 값을 새 열에 넣습니다. 예를 들어 `english + science`를 `total`로 추가하면 98점과 50점을 가진 행의 `total`은 148입니다. 기존 열은 유지됩니다.
+- **파생변수 추가:** 기존 열로 계산한 값을 새 열에 넣음
+- 예를 들어 `english + science`를 `total`로 추가하면 98점과 50점을 가진 행의 `total`은 148임
+- 기존 열은 유지됨
 
 ```python
 exam = pd.read_csv("exam.csv")
@@ -1343,7 +1348,9 @@ exam.assign(total = exam['math'] + exam['english'] + exam['science']).sort_value
 - `lambda x`의 `x`는 처리 중인 데이터프레임
 - 코드를 간결하게 사용 가능
 
-`lambda x`의 `x`는 `assign()`이 처리 중인 데이터프레임입니다. 같은 호출에서 앞서 만든 `total` 열을 뒤의 `mean` 계산에 사용할 수 있습니다. [pandas assign 공식 설명](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.assign.html).
+- `lambda x`의 `x`는 `assign()`이 처리 중인 데이터프레임
+- 같은 호출에서 앞서 만든 `total` 열을 뒤의 `mean` 계산에 사용할 수 있음
+- [pandas assign 공식 설명](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.assign.html)
 
 ```python
 exam = pd.read_csv("exam.csv")
@@ -1531,16 +1538,17 @@ mpg.assign(total = lambda x: x['cty'] + x['hwy'],
 
 **기본 형태:** `df.groupby("집단 변수")`
 
-**행 추출:** `query('nclass == 1')`은 `nclass` 값이 1인 행을 남기고, 다른 반의 행은 제외합니다. 열 구성은 유지됩니다.
+- **행 추출:** `query('nclass == 1')`은 `nclass` 값이 1인 행을 남기고, 다른 반의 행은 제외함
+- 열 구성은 유지됨
 
 ```python
 df.groupby(key).agg(mean = ('data', 'mean'))
 ```
 
 - 집단별 평균, 집단별 빈도, 집단별 합계 등과 같이 집단별 요약이 필요한 경우 사용
-- 집단 간 요약표를 통해 집단 간 비교가 쉽다
+- 집단 간 요약표를 통해 집단 간 비교가 쉬움
 
-**집단별 요약:** `groupby("nclass")`로 반별 집단을 나눈 뒤 `agg()`로 평균 등을 계산하면, 반마다 하나의 요약 행을 얻습니다.
+**집단별 요약:** `groupby("nclass")`로 반별 집단을 나눈 뒤 `agg()`로 평균 등을 계산하면, 반마다 하나의 요약 행을 얻음
 
 ```python
 df.groupby(key).agg(sum_data = ('data', 'sum'))
@@ -1548,7 +1556,7 @@ df.groupby(key).agg(sum_data = ('data', 'sum'))
 
 **나누기 → 계산하기 → 합치기**
 
-`groupby()`로 같은 키를 가진 행을 모으고, `agg()`로 각 집단에 함수를 적용한 뒤 결과를 하나의 표로 합칩니다.
+`groupby()`로 같은 키를 가진 행을 모으고, `agg()`로 각 집단에 함수를 적용한 뒤 결과를 하나의 표로 합침
 
 | key | 집단의 data 값 | 합계 |
 | --- | --- | --- |
@@ -1574,7 +1582,7 @@ df.groupby("key").agg(sum_data=("data", "sum"))
 | max() | 최대값 |
 | count() | 빈도(개수) |
 
-### agg()란?
+### agg() 개념
 
 > - aggregate - 통합, 합계 라는 의미
 > - groupby와 함께 사용되어 그룹의 통계를 표현할 때 사용
@@ -1680,9 +1688,9 @@ np.float64(57.45)
 
 ### 집단별 요약 통계량 구하기 (`groupby()`)
 
-1. 반별 수학 점수 평균을 구합니다.
-2. `exam.groupby("nclass")`로 반별 집단을 나눕니다.
-3. `.agg(mean_math=("math", "mean"))`으로 반별 수학 평균을 계산하고 결과 열의 이름을 `mean_math`로 정합니다.
+1. 반별 수학 점수 평균을 구함
+2. `exam.groupby("nclass")`로 반별 집단을 나눔
+3. `.agg(mean_math=("math", "mean"))`으로 반별 수학 평균을 계산하고 결과 열의 이름을 `mean_math`로 정함
 
 ```python
 # 반(nclass)별로 그룹화하고, 그룹별로 변수(컬럼) math에 대한 평균(mean)을 구하고, 
@@ -1816,7 +1824,9 @@ exam.groupby('nclass').mean()
 - `mpg.groupby(['manufacturer', 'drv'])`: 데이터를 제조사(manufacturer)와 구동방식(drv)로 집단을 나누고
 - `mpg.groupby(['manufacturer', 'drv']).agg(mean_cty = ('cty', 'mean'))`: 집단별로 cty의 평균(mean)을 구하여 변수 mean_cty에 저장
 
-`mpg`는 자동차 연비를 담은 234행, 11개 열의 데이터입니다. [ggplot2 mpg 공식 설명](https://ggplot2.tidyverse.org/reference/mpg.html)을 기준으로 배기량 단위를 보완했습니다. 실습에서는 차종 열 이름을 `category`로 사용합니다.
+- `mpg`는 자동차 연비를 담은 234행, 11개 열의 데이터
+- [ggplot2 mpg 공식 설명](https://ggplot2.tidyverse.org/reference/mpg.html)을 기준으로 배기량 단위를 보완했음
+- 실습에서는 차종 열 이름을 `category`로 사용함
 
 | 열 | 의미 |
 | --- | --- |
@@ -2294,7 +2304,7 @@ Name: count, dtype: int64
 
 #### 가로로 합치기 : merge()
 
-**가로 결합:** 공통 키인 `id`를 기준으로 중간고사 점수와 기말고사 점수를 같은 행에 배치합니다.
+**가로 결합:** 공통 키인 `id`를 기준으로 중간고사 점수와 기말고사 점수를 같은 행에 배치함
 
 | id | midterm | finalterm |
 | --- | --- | --- |
@@ -2304,7 +2314,9 @@ Name: count, dtype: int64
 
 #### 세로로 합치기 : concat()
 
-**세로 결합:** 같은 열을 가진 두 데이터프레임을 행 방향으로 이어 붙입니다. 각 데이터가 3행이라면 결과는 6행이 됩니다. `ignore_index=True`로 결과 인덱스를 새로 매길 수 있습니다.
+- **세로 결합:** 같은 열을 가진 두 데이터프레임을 행 방향으로 이어 붙임
+- 각 데이터가 3행이라면 결과는 6행이 됨
+- `ignore_index=True`로 결과 인덱스를 새로 매길 수 있음
 
 ### Lab1. 가로로 합치기
 
@@ -2584,8 +2596,9 @@ pd.merge(fruit, grade, on = 'Num', how = 'outer')
 
 ### Lab2. 세로로 합치기 (concat())
 
-- 시험을 5명씩 2번에 걸쳐 보아서 두개의 DataFrame이 존재한다.
-- 같은 열 이름의 데이터는 행 방향으로 이어 붙일 수 있다. 열이 달라도 합칠 수 있으며, 없는 값은 기본적으로 NaN으로 채워진다.
+- 시험을 5명씩 2번에 걸쳐 보아서 두개의 DataFrame이 존재함
+- 같은 열 이름의 데이터는 행 방향으로 이어 붙일 수 있음
+  - 열이 달라도 합칠 수 있으며, 없는 값은 기본적으로 NaN으로 채워짐
 
 ```python
 group_a = pd.DataFrame({'id' : [1, 2, 3, 4, 5],
@@ -2679,7 +2692,7 @@ group_all
 
 </details>
 
-### concat()은 반드시 column이 동일해야 하나요?
+### concat()의 column 일치 필요 여부
 
 ```python
 group_c = pd.DataFrame({'id' : [16, 17, 18, 19, 20],
