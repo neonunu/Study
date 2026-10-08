@@ -66,45 +66,6 @@ flowchart TD
    └─ -1 반환
 ```
 
-```mermaid
-flowchart TB
-    A(["이진 탐색<br/>Binary Search"])
-
-    A --> B["입력 데이터 준비<br/><b>n, list, key</b>"]
-    A --> C["검색 구간 설정<br/><b>left, right</b>"]
-    A --> D["중앙값과 비교<br/><b>key : list[mid]</b>"]
-
-    C --> E["초기값 설정<br/>left = 0<br/>right = n - 1"]
-
-    E --> D
-    D --> F{"비교 결과"}
-
-    F -->|"key < list[mid]"| G["왼쪽 구간 선택<br/><b>right = mid - 1</b>"]
-    F -->|"key > list[mid]"| H["오른쪽 구간 선택<br/><b>left = mid + 1</b>"]
-    F -->|"key == list[mid]"| I(["위치 정보 출력<br/><b>return mid</b>"])
-
-    G --> J{"검색할 구간이<br/>남아 있는가?"}
-    H --> J
-
-    J -->|"left ≤ right"| D
-    J -->|"left > right"| K(["검색 실패<br/><b>return -1</b>"])
-
-    classDef root fill:#3b82f6,color:#ffffff,stroke:#1d4ed8,stroke-width:3px
-    classDef input fill:#dbeafe,color:#1e3a8a,stroke:#60a5fa,stroke-width:2px
-    classDef range fill:#fef3c7,color:#78350f,stroke:#f59e0b,stroke-width:2px
-    classDef compare fill:#ede9fe,color:#4c1d95,stroke:#8b5cf6,stroke-width:2px
-    classDef decision fill:#fff7ed,color:#7c2d12,stroke:#fb923c,stroke-width:2px
-    classDef success fill:#dcfce7,color:#14532d,stroke:#22c55e,stroke-width:2px
-    classDef failure fill:#fee2e2,color:#7f1d1d,stroke:#ef4444,stroke-width:2px
-
-    class A root
-    class B input
-    class C,E range
-    class D,G,H compare
-    class F,J decision
-    class I success
-    class K failure
-```
 ---
 
 ## 3. 선택 정렬 복습
@@ -274,6 +235,50 @@ list : 10  20  30  40  50  60  70  80  90
 
 ### 흐름도
 
+사진 자료의 구성을 정리한 계층형 구조도:
+
+```mermaid
+flowchart TB
+    A(["이진 탐색<br/>Binary Search"])
+
+    A --> B["입력 데이터 준비<br/>n, list, key"]
+    A --> C["검색 구간 설정<br/>left, right"]
+    A --> D["중앙값과 비교<br/>key : list[mid]"]
+
+    C --> E["초기값 설정<br/>left = 0<br/>right = n - 1"]
+
+    E --> D
+    D --> F{"비교 결과"}
+
+    F -->|"key < list[mid]"| G["왼쪽 구간 선택<br/>right = mid - 1"]
+    F -->|"key > list[mid]"| H["오른쪽 구간 선택<br/>left = mid + 1"]
+    F -->|"key == list[mid]"| I(["위치 정보 출력<br/>return mid"])
+
+    G --> J{"검색 구간 존재?"}
+    H --> J
+
+    J -->|"left <= right"| D
+    J -->|"left > right"| K(["검색 실패<br/>return -1"])
+
+    classDef root fill:#3b82f6,color:#ffffff,stroke:#1d4ed8,stroke-width:3px
+    classDef input fill:#dbeafe,color:#1e3a8a,stroke:#60a5fa,stroke-width:2px
+    classDef range fill:#fef3c7,color:#78350f,stroke:#f59e0b,stroke-width:2px
+    classDef compare fill:#ede9fe,color:#4c1d95,stroke:#8b5cf6,stroke-width:2px
+    classDef decision fill:#fff7ed,color:#7c2d12,stroke:#fb923c,stroke-width:2px
+    classDef success fill:#dcfce7,color:#14532d,stroke:#22c55e,stroke-width:2px
+    classDef failure fill:#fee2e2,color:#7f1d1d,stroke:#ef4444,stroke-width:2px
+
+    class A root
+    class B input
+    class C,E range
+    class D,G,H compare
+    class F,J decision
+    class I success
+    class K failure
+```
+
+실제 반복 과정을 나타낸 흐름도:
+
 ```mermaid
 flowchart TD
     A[left = 0<br/>right = n - 1] --> B{left <= right?}
@@ -291,62 +296,217 @@ flowchart TD
 
 ## 6. 이진 탐색 Simulation
 
-### Case 1: `key = 70`
+> [!NOTE]
+> 아래 트리는 배열을 실제 이진 탐색 트리로 저장한 구조가 아니라, 이진 탐색에서 중앙값을 선택하는 순서를 트리 모양으로 표현한 검색 결정 트리
 
-초기 데이터:
+### 오름차순 배열
 
 ```text
-list = {10, 20, 30, 40, 50, 60, 70, 80, 90}
+index :  0   1   2   3   4   5   6   7   8
+list  : 10  20  30  40  50  60  70  80  90
 ```
 
-| 단계 | `left` | `right` | `mid` | `list[mid]` | 비교 결과 | 다음 동작 |
-| ---: | ---: | ---: | ---: | ---: | --- | --- |
-| 1 | 0 | 8 | 4 | 50 | `70 > 50` | `left = 5` |
-| 2 | 5 | 8 | 6 | 70 | `70 == 70` | 인덱스 `6` 반환 |
+중앙 인덱스 계산:
+
+```text
+mid = (left + right) / 2
+```
+
+오름차순 검색 구간 변경:
+
+| 비교 결과 | 다음 검색 구간 |
+| --- | --- |
+| `key > list[mid]` | `left = mid + 1` |
+| `key < list[mid]` | `right = mid - 1` |
+| `key == list[mid]` | 검색 성공, `mid` 반환 |
+
+#### Case 1: `key = 70`
+
+| 단계 | `left` | `right` | `mid` | `key : list[mid]` | 다음 동작 |
+| ---: | ---: | ---: | ---: | :--- | --- |
+| 1 | 0 | 8 | 4 | `70 > 50` | `left = 5` |
+| 2 | 5 | 8 | 6 | `70 == 70` | 인덱스 `6` 반환 |
+
+단계별 계산:
+
+```text
+1단계
+mid = (0 + 8) / 2 = 4
+list[4] = 50
+70 > 50이므로 left = 5
+
+2단계
+mid = (5 + 8) / 2 = 6
+list[6] = 70
+70 == 70이므로 검색 성공
+```
 
 결과:
 
 - 0부터 시작하는 인덱스: `6`
 - 사람이 세는 위치: 7번째
+- 검색 경로: `50 → 70`
 
-### Case 2: `key = 25`
+#### Case 2: `key = 25`
 
-| 단계 | `left` | `right` | `mid` | `list[mid]` | 비교 결과 | 다음 동작 |
-| ---: | ---: | ---: | ---: | ---: | --- | --- |
-| 1 | 0 | 8 | 4 | 50 | `25 < 50` | `right = 3` |
-| 2 | 0 | 3 | 1 | 20 | `25 > 20` | `left = 2` |
-| 3 | 2 | 3 | 2 | 30 | `25 < 30` | `right = 1` |
-| 종료 | 2 | 1 | - | - | `left > right` | `-1` 반환 |
+| 단계 | `left` | `right` | `mid` | `key : list[mid]` | 다음 동작 |
+| ---: | ---: | ---: | ---: | :--- | --- |
+| 1 | 0 | 8 | 4 | `25 < 50` | `right = 3` |
+| 2 | 0 | 3 | 1 | `25 > 20` | `left = 2` |
+| 3 | 2 | 3 | 2 | `25 < 30` | `right = 1` |
+| 종료 | 2 | 1 | - | `left > right` | `-1` 반환 |
 
-결과: 배열에 `25`가 없으므로 `-1`
+단계별 계산:
+
+```text
+1단계
+mid = (0 + 8) / 2 = 4
+list[4] = 50
+25 < 50이므로 right = 3
+
+2단계
+mid = (0 + 3) / 2 = 1
+list[1] = 20
+25 > 20이므로 left = 2
+
+3단계
+mid = (2 + 3) / 2 = 2
+list[2] = 30
+25 < 30이므로 right = 1
+
+종료
+left = 2, right = 1
+left > right이므로 검색 실패
+```
+
+결과:
+
+- 반환값: `-1`
+- 검색 경로: `50 → 20 → 30 → NULL`
+- 배열에 `25`가 존재하지 않음
+
+### 오름차순 검색 결정 트리
+
+```mermaid
+flowchart TD
+    N50(["50<br/>index 4"])
+
+    N50 -->|"작은 값"| N20(["20<br/>index 1"])
+    N50 -->|"큰 값"| N70(["70<br/>index 6"])
+
+    N20 -->|"작은 값"| N10(["10<br/>index 0"])
+    N20 -->|"큰 값"| N30(["30<br/>index 2"])
+
+    N30 -->|"큰 값"| N40(["40<br/>index 3"])
+    N30 -.->|"25가 들어갈 위치"| FAIL25(["NULL<br/>25 없음"])
+
+    N70 -->|"작은 값"| N60(["60<br/>index 5"])
+    N70 -->|"큰 값"| N80(["80<br/>index 7"])
+
+    N80 -->|"큰 값"| N90(["90<br/>index 8"])
+
+    classDef root fill:#3b82f6,color:#ffffff,stroke:#1d4ed8,stroke-width:3px
+    classDef normal fill:#dbeafe,color:#1e3a8a,stroke:#60a5fa,stroke-width:2px
+    classDef found fill:#dcfce7,color:#14532d,stroke:#22c55e,stroke-width:3px
+    classDef checked fill:#fef3c7,color:#78350f,stroke:#f59e0b,stroke-width:3px
+    classDef missing fill:#fee2e2,color:#7f1d1d,stroke:#ef4444,stroke-width:2px
+
+    class N50 root
+    class N10,N40,N60,N80,N90 normal
+    class N70 found
+    class N20,N30 checked
+    class FAIL25 missing
+```
+
+트리의 검색 경로:
+
+```text
+key = 70 : 50 → 70 → 검색 성공
+key = 25 : 50 → 20 → 30 → NULL → 검색 실패
+```
 
 ### 내림차순 배열: `key = 40`
 
-초기 데이터:
-
 ```text
-list = {95, 90, 85, 80, 75, 70, 65, 60, 50, 40, 30}
+index :  0   1   2   3   4   5   6   7   8   9  10
+list  : 95  90  85  80  75  70  65  60  50  40  30
 ```
 
-내림차순 구간 이동:
+내림차순에서는 큰 값이 왼쪽, 작은 값이 오른쪽에 위치:
 
-| 비교 결과 | 변경식 |
+| 비교 결과 | 다음 검색 구간 |
 | --- | --- |
 | `key > list[mid]` | `right = mid - 1` |
 | `key < list[mid]` | `left = mid + 1` |
+| `key == list[mid]` | 검색 성공, `mid` 반환 |
 
-Simulation:
+| 단계 | `left` | `right` | `mid` | `key : list[mid]` | 다음 동작 |
+| ---: | ---: | ---: | ---: | :--- | --- |
+| 1 | 0 | 10 | 5 | `40 < 70` | `left = 6` |
+| 2 | 6 | 10 | 8 | `40 < 50` | `left = 9` |
+| 3 | 9 | 10 | 9 | `40 == 40` | 인덱스 `9` 반환 |
 
-| 단계 | `left` | `right` | `mid` | `list[mid]` | 비교 결과 | 다음 동작 |
-| ---: | ---: | ---: | ---: | ---: | --- | --- |
-| 1 | 0 | 10 | 5 | 70 | `40 < 70` | `left = 6` |
-| 2 | 6 | 10 | 8 | 50 | `40 < 50` | `left = 9` |
-| 3 | 9 | 10 | 9 | 40 | `40 == 40` | 인덱스 `9` 반환 |
+단계별 계산:
+
+```text
+1단계
+mid = (0 + 10) / 2 = 5
+list[5] = 70
+40 < 70이므로 left = 6
+
+2단계
+mid = (6 + 10) / 2 = 8
+list[8] = 50
+40 < 50이므로 left = 9
+
+3단계
+mid = (9 + 10) / 2 = 9
+list[9] = 40
+40 == 40이므로 검색 성공
+```
 
 결과:
 
 - 0부터 시작하는 인덱스: `9`
 - 사람이 세는 위치: 10번째
+- 검색 경로: `70 → 50 → 40`
+
+### 내림차순 검색 결정 트리
+
+```mermaid
+flowchart TD
+    N70(["70<br/>index 5"])
+
+    N70 -->|"큰 값"| N85(["85<br/>index 2"])
+    N70 -->|"작은 값"| N50(["50<br/>index 8"])
+
+    N85 -->|"큰 값"| N95(["95<br/>index 0"])
+    N85 -->|"작은 값"| N80(["80<br/>index 3"])
+
+    N95 -->|"작은 값"| N90(["90<br/>index 1"])
+    N80 -->|"작은 값"| N75(["75<br/>index 4"])
+
+    N50 -->|"큰 값"| N65(["65<br/>index 6"])
+    N50 -->|"작은 값"| N40(["40<br/>index 9"])
+
+    N65 -->|"작은 값"| N60(["60<br/>index 7"])
+    N40 -->|"작은 값"| N30(["30<br/>index 10"])
+
+    classDef root fill:#3b82f6,color:#ffffff,stroke:#1d4ed8,stroke-width:3px
+    classDef normal fill:#dbeafe,color:#1e3a8a,stroke:#60a5fa,stroke-width:2px
+    classDef checked fill:#fef3c7,color:#78350f,stroke:#f59e0b,stroke-width:3px
+    classDef found fill:#dcfce7,color:#14532d,stroke:#22c55e,stroke-width:3px
+
+    class N70,N50 checked
+    class N40 found
+    class N85,N95,N90,N80,N75,N65,N60,N30 normal
+```
+
+검색 경로:
+
+```text
+70 → 50 → 40 → 검색 성공
+```
 
 ---
 
@@ -568,6 +728,9 @@ recursive: 26 -> index -1
 ---
 
 ## 10. 물품 재고 이진 탐색
+
+> [!NOTE]
+> `bs_item.c` 실습은 *시험에서 제외*
 
 ### 문제 정의
 
@@ -1103,3 +1266,4 @@ list = {95, 90, 85, 80, 75, 70, 65, 60, 50, 40, 30}
 - [ ] `O(1)`, `O(log n)`, `O(n)`, `O(n²)`의 증가 속도 비교
 - [ ] 2차원 배열에서 물품 번호 열과 재고 수량 열 구분
 - [ ] 이진 탐색 전 데이터 정렬 상태 확인
+
