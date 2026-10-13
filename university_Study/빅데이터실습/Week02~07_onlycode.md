@@ -2941,3 +2941,203 @@ sns.stripplot(
 )
 ```
 
+### 기온·강수량 미니프로젝트
+
+```python
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# macOS 한글 폰트 설정
+plt.rcParams["font.family"] = "AppleGothic"
+plt.rcParams["axes.unicode_minus"] = False
+
+# 연도별 3월 평균 기온
+temp = pd.read_csv(
+    "ta_20240119085216.csv",
+    encoding="cp949",
+    header=6,
+)
+
+temp["날짜"] = temp["날짜"].str.replace("\t", "", regex=False)
+temp["날짜"] = pd.to_datetime(temp["날짜"])
+temp = temp.rename(
+    columns={
+        "평균기온(℃)": "temp_mean",
+        "최저기온(℃)": "temp_min",
+        "최고기온(℃)": "temp_max",
+    }
+)
+temp = temp.dropna(subset=["temp_mean"])
+temp["year"] = temp["날짜"].dt.year
+temp["month"] = temp["날짜"].dt.month
+
+temp_mar = temp.query("month == 3")
+mean_temp_mar = (
+    temp_mar.groupby("year", as_index=False)
+            .agg(mean_temp_mar=("temp_mean", "mean"))
+)
+
+print(mean_temp_mar)
+
+plt.figure(figsize=(12, 5))
+sns.lineplot(
+    data=mean_temp_mar,
+    x="year",
+    y="mean_temp_mar",
+)
+plt.xlabel("연도")
+plt.ylabel("3월 평균 기온")
+plt.title("연도별 3월 평균 기온 변화")
+plt.grid()
+plt.show()
+
+# 일별·월별 강수량
+rain = pd.read_csv(
+    "rn_20251019180840.csv",
+    encoding="cp949",
+    header=6,
+)
+
+rain = rain.rename(columns={"강수량(mm)": "rainfall"})
+rain["날짜"] = rain["날짜"].str.replace("\t", "", regex=False)
+rain["날짜"] = pd.to_datetime(rain["날짜"])
+rain["rainfall"] = pd.to_numeric(
+    rain["rainfall"],
+    errors="coerce",
+).fillna(0)
+
+rain.info()
+print(rain.describe())
+
+plt.figure(figsize=(15, 5))
+plt.plot(
+    rain["날짜"],
+    rain["rainfall"],
+    linewidth=0.5,
+)
+plt.xlabel("날짜")
+plt.ylabel("강수량(mm)")
+plt.title("일별 강수량 변화")
+plt.grid()
+plt.show()
+
+rain["year_month"] = (
+    rain["날짜"].dt.to_period("M").dt.to_timestamp()
+)
+monthly_rain = (
+    rain.groupby("year_month", as_index=False)
+        .agg(mean_rainfall=("rainfall", "mean"))
+)
+
+print(monthly_rain)
+
+plt.figure(figsize=(15, 5))
+plt.plot(
+    monthly_rain["year_month"],
+    monthly_rain["mean_rainfall"],
+    linewidth=1,
+)
+plt.xlabel("연월")
+plt.ylabel("월평균 강수량(mm)")
+plt.title("월별 평균 강수량 변화")
+plt.grid()
+plt.show()
+```
+
+### 인터랙티브 그래프
+
+```python
+import sys
+
+# 현재 Jupyter 커널에 Plotly 설치
+!{sys.executable} -m pip install --upgrade plotly nbformat
+```
+
+```python
+import pandas as pd
+import seaborn as sns
+import plotly.express as px
+import plotly.io as pio
+
+mpg = pd.read_csv("mpg.csv")
+
+# 산점도
+px.scatter(
+    data_frame=mpg,
+    x="cty",
+    y="hwy",
+    color="drv",
+)
+
+# 자동차 종류별 빈도 막대 그래프
+category_count = (
+    mpg.groupby("category", as_index=False)
+       .agg(n=("category", "count"))
+)
+
+px.bar(
+    data_frame=category_count,
+    x="category",
+    y="n",
+    color="category",
+)
+
+# 개인 저축률 선 그래프
+economics = pd.read_csv("economics.csv")
+economics["date"] = pd.to_datetime(economics["date"])
+
+px.line(
+    data_frame=economics,
+    x="date",
+    y="psavert",
+)
+
+# 구동 방식별 고속도로 연비 상자 그림
+px.box(
+    data_frame=mpg,
+    x="drv",
+    y="hwy",
+    color="drv",
+)
+
+# 그래프 크기 조절
+fig = px.scatter(
+    data_frame=mpg,
+    x="hwy",
+    y="cty",
+    color="drv",
+    width=600,
+    height=400,
+)
+
+# 새 브라우저에서 출력
+pio.renderers.default = "browser"
+fig.show()
+
+# JupyterLab 출력으로 복원
+pio.renderers.default = "jupyterlab"
+fig.show()
+
+# 연결형 노트북 렌더러로 출력
+fig.show(renderer="notebook_connected")
+
+# 인터랙티브 HTML로 저장
+fig.write_html("scatter_plot.html")
+
+# seaborn과 Plotly 산점도 비교
+sns.scatterplot(
+    data=mpg,
+    x="cty",
+    y="hwy",
+    hue="drv",
+)
+
+px.scatter(
+    data_frame=mpg,
+    x="cty",
+    y="hwy",
+    color="drv",
+)
+```
+

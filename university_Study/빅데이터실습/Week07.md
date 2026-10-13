@@ -1,6 +1,6 @@
 # 빅데이터실습 7주차 — 그래프 만들기
 
-> 첨부된 `08 그래프 만들기.html`의 개념과 코드 셀을 정리한 문서입니다. 실행 결과표와 실제 데이터 출력, 그래프 이미지는 제외하고 개념 설명과 재현 가능한 코드만 수록했습니다.
+> 첨부된 `08 그래프 만들기.html`, `미니프로젝트-기온데이터분석.html`, `12장 인터랙티브 그래프.html`의 핵심 개념과 코드 셀을 정리한 문서입니다. 실행 결과표와 실제 데이터 출력, 그래프 이미지는 제외하고 개념 설명과 재현 가능한 코드만 수록했습니다.
 
 ## 학습 목표
 
@@ -760,6 +760,291 @@ sns.stripplot(
 )
 ```
 
+## 08-6 미니프로젝트 — 기온·강수량 데이터 분석
+
+기상청 CSV는 위쪽에 검색 조건이 기록되어 있으므로 `header=6`으로 일곱 번째 줄을 열 이름으로 사용한다. 한글 인코딩은 `cp949`로 지정한다. 저장소에는 실제 기상 데이터 파일을 올리지 않고 파일명과 분석 코드만 기록한다.
+
+### 공통 그래프 설정
+
+macOS에서는 Matplotlib의 기본 글꼴이 한글을 지원하지 않아 경고가 발생할 수 있다. `AppleGothic`을 지정하고 마이너스 기호가 깨지지 않도록 설정한다.
+
+```python
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+plt.rcParams["font.family"] = "AppleGothic"
+plt.rcParams["axes.unicode_minus"] = False
+```
+
+### 기온 데이터 — 연도별 3월 평균 기온
+
+날짜 앞의 탭 문자를 제거한 뒤 날짜 자료형으로 변환한다. 3월 데이터만 추출하고 연도별 평균을 계산하면 장기간의 3월 기온 변화를 선 그래프로 비교할 수 있다.
+
+```python
+temp = pd.read_csv(
+    "ta_20240119085216.csv",
+    encoding="cp949",
+    header=6,
+)
+
+temp["날짜"] = temp["날짜"].str.replace("\t", "", regex=False)
+temp["날짜"] = pd.to_datetime(temp["날짜"])
+
+temp = temp.rename(
+    columns={
+        "평균기온(℃)": "temp_mean",
+        "최저기온(℃)": "temp_min",
+        "최고기온(℃)": "temp_max",
+    }
+)
+
+temp = temp.dropna(subset=["temp_mean"])
+temp["year"] = temp["날짜"].dt.year
+temp["month"] = temp["날짜"].dt.month
+
+temp_mar = temp.query("month == 3")
+
+mean_temp_mar = (
+    temp_mar.groupby("year", as_index=False)
+            .agg(mean_temp_mar=("temp_mean", "mean"))
+)
+
+print(mean_temp_mar)
+
+plt.figure(figsize=(12, 5))
+sns.lineplot(
+    data=mean_temp_mar,
+    x="year",
+    y="mean_temp_mar",
+)
+plt.xlabel("연도")
+plt.ylabel("3월 평균 기온")
+plt.title("연도별 3월 평균 기온 변화")
+plt.grid()
+plt.show()
+```
+
+### 강수량 데이터 — 일별·월별 변화
+
+이번 실습에서는 강수량의 빈 값을 비가 오지 않은 날로 보고 `0`으로 바꾼다. `info()`와 `describe()`로 자료형·결측치·요약 통계를 확인한 뒤 일별 강수량과 월별 평균 강수량을 각각 선 그래프로 나타낸다.
+
+```python
+rain = pd.read_csv(
+    "rn_20251019180840.csv",
+    encoding="cp949",
+    header=6,
+)
+
+rain = rain.rename(columns={"강수량(mm)": "rainfall"})
+rain["날짜"] = rain["날짜"].str.replace("\t", "", regex=False)
+rain["날짜"] = pd.to_datetime(rain["날짜"])
+rain["rainfall"] = pd.to_numeric(
+    rain["rainfall"],
+    errors="coerce",
+).fillna(0)
+
+rain.info()
+print(rain.describe())
+
+plt.figure(figsize=(15, 5))
+plt.plot(
+    rain["날짜"],
+    rain["rainfall"],
+    linewidth=0.5,
+)
+plt.xlabel("날짜")
+plt.ylabel("강수량(mm)")
+plt.title("일별 강수량 변화")
+plt.grid()
+plt.show()
+
+rain["year_month"] = (
+    rain["날짜"].dt.to_period("M").dt.to_timestamp()
+)
+
+monthly_rain = (
+    rain.groupby("year_month", as_index=False)
+        .agg(mean_rainfall=("rainfall", "mean"))
+)
+
+print(monthly_rain)
+
+plt.figure(figsize=(15, 5))
+plt.plot(
+    monthly_rain["year_month"],
+    monthly_rain["mean_rainfall"],
+    linewidth=1,
+)
+plt.xlabel("연월")
+plt.ylabel("월평균 강수량(mm)")
+plt.title("월별 평균 강수량 변화")
+plt.grid()
+plt.show()
+```
+
+## 12장 인터랙티브 그래프
+
+인터랙티브 그래프는 마우스를 올리거나 확대·축소하고 범례를 선택하는 사용자 입력에 실시간으로 반응한다. Plotly Express를 사용하면 데이터프레임의 열 이름을 축과 색상에 연결해 산점도, 막대 그래프, 선 그래프, 상자 그림을 만들 수 있다.
+
+### Plotly 준비
+
+Plotly가 없거나 Jupyter 출력 과정에서 `nbformat` 오류가 발생하면 현재 커널에 다음 패키지를 설치한다. 단순 Plotly 그래프를 표시할 때 `jupyter-dash`는 필수가 아니며, Dash 애플리케이션을 노트북에서 실행할 때 사용한다.
+
+```python
+import sys
+
+!{sys.executable} -m pip install --upgrade plotly nbformat
+```
+
+```python
+import pandas as pd
+import plotly.express as px
+
+mpg = pd.read_csv("mpg.csv")
+```
+
+`px`는 `plotly.express`에 붙인 별칭이므로 `import plotly.express as px`를 먼저 실행하지 않으면 `NameError`가 발생한다.
+
+### 산점도
+
+`color`에 범주형 변수를 지정하면 범주별로 점의 색상이 달라진다. 그래프 위에 마우스를 올리면 각 관측값의 축 값과 범주를 확인할 수 있다.
+
+```python
+px.scatter(
+    data_frame=mpg,
+    x="cty",
+    y="hwy",
+    color="drv",
+)
+```
+
+### 막대 그래프
+
+자동차 종류별 빈도를 먼저 집계한 뒤 Plotly 막대 그래프로 나타낸다.
+
+```python
+category_count = (
+    mpg.groupby("category", as_index=False)
+       .agg(n=("category", "count"))
+)
+
+px.bar(
+    data_frame=category_count,
+    x="category",
+    y="n",
+    color="category",
+)
+```
+
+### 선 그래프
+
+```python
+economics = pd.read_csv("economics.csv")
+economics["date"] = pd.to_datetime(economics["date"])
+
+px.line(
+    data_frame=economics,
+    x="date",
+    y="psavert",
+)
+```
+
+날짜를 `datetime`으로 변환하면 확대·축소와 기간 탐색을 시간 순서에 맞게 사용할 수 있다.
+
+### 상자 그림
+
+```python
+px.box(
+    data_frame=mpg,
+    x="drv",
+    y="hwy",
+    color="drv",
+)
+```
+
+### 그래프 크기 조절
+
+```python
+px.scatter(
+    data_frame=mpg,
+    x="hwy",
+    y="cty",
+    color="drv",
+    width=600,
+    height=400,
+)
+```
+
+### 출력 위치 변경
+
+Jupyter 내부 표시가 되지 않을 때 브라우저 렌더러를 사용할 수 있다.
+
+```python
+import plotly.io as pio
+
+pio.renderers.default = "browser"
+
+fig = px.scatter(
+    data_frame=mpg,
+    x="hwy",
+    y="cty",
+    color="drv",
+    width=600,
+    height=400,
+)
+fig.show()
+```
+
+노트북 내부 출력으로 되돌리는 방법:
+
+```python
+pio.renderers.default = "jupyterlab"
+fig.show()
+```
+
+환경에 따라 `jupyterlab` 렌더러 대신 다음처럼 연결형 노트북 렌더러를 직접 지정할 수 있다.
+
+```python
+fig.show(renderer="notebook_connected")
+```
+
+### HTML 파일로 저장
+
+```python
+fig = px.scatter(
+    data_frame=mpg,
+    x="cty",
+    y="hwy",
+    color="drv",
+)
+
+fig.write_html("scatter_plot.html")
+```
+
+HTML로 저장하면 Python 실행 환경이 없는 곳에서도 브라우저로 인터랙티브 그래프를 열 수 있다.
+
+### seaborn과 Plotly 비교
+
+```python
+sns.scatterplot(
+    data=mpg,
+    x="cty",
+    y="hwy",
+    hue="drv",
+)
+
+px.scatter(
+    data_frame=mpg,
+    x="cty",
+    y="hwy",
+    color="drv",
+)
+```
+
+- seaborn: 정적인 통계 그래프와 세밀한 Matplotlib 편집에 적합
+- Plotly: 마우스 정보 확인, 확대·축소, 범례 선택, HTML 공유에 적합
+
 ## 핵심 정리
 
 - 산점도: 두 연속형 변수의 관계 확인
@@ -773,3 +1058,5 @@ sns.stripplot(
 - `dt.year`, `dt.month`, `dt.day`: 날짜 요소 추출
 - 그래프를 그리기 전에 결측치, 이상치, 단위, 축 범위 확인
 - 상관관계만으로 인과관계를 확정하지 않기
+- Plotly Express는 `px.scatter()`, `px.bar()`, `px.line()`, `px.box()`로 인터랙티브 그래프 생성
+- `fig.write_html()`을 사용하면 그래프를 인터랙티브 HTML로 저장 가능
