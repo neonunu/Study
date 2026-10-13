@@ -3141,3 +3141,121 @@ px.scatter(
 )
 ```
 
+## 추가 연습문제
+
+### exam.csv 총합·평균점수·상위 3명
+
+```python
+import pandas as pd
+
+exam = pd.read_csv("exam.csv")
+
+# Q1: 영어·과학·수학 점수의 총합
+exam["총합"] = exam["english"] + exam["science"] + exam["math"]
+
+# Q2: 평균점수
+exam["평균점수"] = exam["총합"] / 3
+
+# Q3: 평균점수가 가장 높은 학생 3명
+exam_top3 = (
+    exam.sort_values("평균점수", ascending=False)
+        .head(3)
+)
+
+exam_top3
+```
+
+```python
+# Q4: Q1~Q3 메서드 체이닝
+exam_top3 = (
+    pd.read_csv("exam.csv")
+      .assign(총합=lambda x: x["english"] + x["science"] + x["math"])
+      .assign(평균점수=lambda x: x["총합"] / 3)
+      .sort_values("평균점수", ascending=False)
+      .head(3)
+)
+
+exam_top3
+```
+
+### mpg 변속기·구동 방식·연료별 평균 연비
+
+```python
+import pandas as pd
+import numpy as np
+
+mpg = pd.read_csv("mpg.csv")
+
+# 자동·수동 구분 후 평균 연비 계산
+trans_result = (
+    mpg.assign(
+        trans_type=np.where(
+            mpg["trans"].str.startswith("auto"),
+            "auto",
+            "manual",
+        )
+    )
+    .groupby("trans_type", as_index=False)
+    .agg(
+        mean_cty=("cty", "mean"),
+        mean_hwy=("hwy", "mean"),
+    )
+)
+
+trans_result
+```
+
+```python
+# drv별 cty·hwy 평균 연비
+drv_result = (
+    mpg.groupby("drv", as_index=False)
+       .agg(
+           mean_cty=("cty", "mean"),
+           mean_hwy=("hwy", "mean"),
+       )
+)
+
+# cty 평균 연비 순위
+drv_cty_top5 = (
+    drv_result.sort_values("mean_cty", ascending=False)
+              .head(5)
+)
+
+# hwy 평균 연비 순위
+drv_hwy_top5 = (
+    drv_result.sort_values("mean_hwy", ascending=False)
+              .head(5)
+)
+
+drv_result
+drv_cty_top5
+drv_hwy_top5
+```
+
+```python
+# fl별 cty·hwy 평균 연비
+fl_result = (
+    mpg.groupby("fl", as_index=False)
+       .agg(
+           mean_cty=("cty", "mean"),
+           mean_hwy=("hwy", "mean"),
+       )
+)
+
+# cty 평균 연비 TOP 5
+fl_cty_top5 = (
+    fl_result.sort_values("mean_cty", ascending=False)
+             .head(5)
+)
+
+# hwy 평균 연비 TOP 5
+fl_hwy_top5 = (
+    fl_result.sort_values("mean_hwy", ascending=False)
+             .head(5)
+)
+
+fl_result
+fl_cty_top5
+fl_hwy_top5
+```
+
