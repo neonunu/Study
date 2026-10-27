@@ -269,6 +269,46 @@ with selected_tab3:
 
 사용자가 선택한 문자열을 `selected_menu` 변수에 저장
 
+#### 사이드바에 자료를 넣는 방법
+
+`selectbox` 외의 텍스트, 이미지, 표, 차트도 사이드바에 출력 가능. 방식은 두 가지
+
+> 아래 예시 코드는 실행 전 예시
+
+**방법 1: `st.sidebar.` 접두사**
+
+위젯 앞에 `st.sidebar.`를 붙여 하나씩 사이드바에 출력
+
+```python
+import streamlit as st
+import pandas as pd
+
+selected_menu = st.sidebar.selectbox('title', ['홈', '데이터', '차트'])
+
+st.sidebar.write("설명 텍스트")
+st.sidebar.image("logo.png")
+st.sidebar.dataframe(pd.DataFrame({'a': [1, 2], 'b': [3, 4]}))
+```
+
+**방법 2: `with st.sidebar:` 블록**
+
+블록 안의 일반 `st.` 명령을 모두 사이드바에 출력. 여러 요소를 한꺼번에 넣을 때 유리
+
+```python
+with st.sidebar:
+    selected_menu = st.selectbox('title', ['홈', '데이터', '차트'])
+    st.markdown("### 필터")
+    year = st.slider('연도', 2020, 2026, 2024)
+    df = pd.read_csv('data.csv')
+    st.dataframe(df.head())        # 표
+    st.line_chart(df['value'])     # 차트
+```
+
+| 방식 | 특징 |
+| --- | --- |
+| `st.sidebar.위젯()` | 요소 하나씩 지정. 사이드바 요소가 적을 때 적합 |
+| `with st.sidebar:` | 블록 단위 지정. 8구역의 `with selected_tab1:`과 같은 원리 |
+
 ### 10구역: 선택값에 따른 화면 출력
 
 ```python
@@ -295,6 +335,19 @@ tab3 analyzing 선택 → tab3 문구와 세 번째 이미지 출력
 
 `if-elif`는 여러 조건 중 일치하는 하나의 코드 블록만 실행
 
+#### 응용 예시: 메뉴별 본문 전환
+
+같은 패턴으로 사이드바 메뉴에 따라 본문에 표나 차트를 바꿔 출력 가능 (실행 전 예시)
+
+```python
+if selected_menu == '홈':
+    st.title('홈 화면')
+elif selected_menu == '데이터':
+    st.dataframe(df)
+elif selected_menu == '차트':
+    st.line_chart(df['value'])
+```
+
 ## 핵심 데이터 처리 정리
 
 | 코드 | 역할 |
@@ -308,14 +361,14 @@ tab3 analyzing 선택 → tab3 문구와 세 번째 이미지 출력
 | `px.bar()` | Plotly 막대그래프 생성 |
 | `st.tabs()` | 탭 메뉴 생성 |
 | `st.sidebar.selectbox()` | 사이드바 선택 메뉴 생성 |
+| `with st.sidebar:` | 블록 안의 요소를 사이드바에 출력 |
 
 ## 실행 시 참고사항
 
-다음 내용은 원본 코드에 반영하지 않은 참고사항이다.
+- **사이드바 폭**: 좁은 폭 때문에 큰 표나 차트가 잘려 보일 수 있음. 사이드바에는 메뉴와 필터, 본문에는 표와 차트를 배치하는 구성 권장
+- **중첩 `columns`**: 사이드바 안에서 `st.columns` 사용은 가능하나, `columns` 안에 `columns`를 다시 넣는 중첩은 Streamlit 버전에 따라 제한
+- **사이드바 폭 조절**: CSS 주입으로 변경 가능. 내부 구조(`data-testid`)에 의존하므로 버전 변경 시 동작하지 않을 가능성 있음
 
-- 첫 번째 `st.image()`에는 이미지 파일이 아닌 Google 이미지 검색 결과 주소가 전달되어 이미지가 표시되지 않을 수 있음
-- 두 번째 탭은 `#dog image`이지만 화면 문구는 `st.text('cat')`으로 작성됨
-- 외부 사이트의 이미지 주소는 URL 변경이나 외부 링크 차단으로 표시되지 않을 수 있음
-- `mpg.csv`가 `1027.py`와 같은 폴더에 없으면 `FileNotFoundError` 발생
-
-원본 실습 내용 보존을 위해 위 항목을 코드에서 임의로 수정하지 않음
+```python
+st.markdown("<style>[data-testid='stSidebar']{width:400px}</style>", unsafe_allow_html=True)
+```
