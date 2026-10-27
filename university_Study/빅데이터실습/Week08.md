@@ -1,20 +1,5 @@
 # Streamlit 데이터 분석 수업 정리
 
-오늘 학습한 Streamlit 기본 컴포넌트, 사이드바 메뉴, 탭, pandas 데이터 처리,
-Seaborn 및 Plotly 시각화를 하나의 앱으로 통합한 예제입니다.
-
-## 프로젝트 구조
-
-```text
-streamlit-mpg-study/
-├── app.py
-├── mpg.csv
-├── requirements.txt
-└── README.md
-```
-
-`mpg.csv`는 수업에서 사용한 파일을 준비해 `app.py`와 같은 폴더에 둡니다.
-
 ## 실행 방법
 
 ```bash
