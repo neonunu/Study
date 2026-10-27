@@ -1,1044 +1,400 @@
-# 스프링 부트 수업 전체 정리
+# Spring Boot와 Spring MVC 기초
 
+Spring Boot 프로젝트 생성부터 Spring MVC 기반 화면 이동까지 한 문서로 정리한 학습 자료
 
-## 1. 수업 전체 흐름
+> 자동 전사 과정에서 잘못 인식된 용어를 공식 기술명으로 보정하고, 강의의 단순화된 설명과 실제 기술 동작이 다른 부분은 `기술 보정`에서 별도 구분
 
-1. Spring Boot 프로젝트 생성 및 Gradle 설정
-2. Servlet과 Spring Framework의 차이
-3. 3-Layered Architecture 구조
-4. Spring MVC와 REST API의 차이
-5. HTTP 요청·응답 메시지와 상태 코드
-6. JPA, H2, Mustache 의존성 추가
-7. 프로젝트 폴더 구조와 환경 설정
-8. DispatcherServlet과 ViewResolver 처리 흐름
-9. Spring Bean과 주요 어노테이션
-10. Controller 구현 및 웹페이지 연결 실습
+## 목차
 
-# 2. Spring Boot 프로젝트 생성
+- [1. 시험 핵심 요약](#1-시험-핵심-요약)
+- [2. Spring Boot 프로젝트 생성](#2-spring-boot-프로젝트-생성)
+- [3. 3계층 아키텍처](#3-3계층-아키텍처)
+- [4. 데이터 접근 계층](#4-데이터-접근-계층)
+- [5. 프레젠테이션 계층](#5-프레젠테이션-계층)
+- [6. HTTP 메시지와 메서드](#6-http-메시지와-메서드)
+- [7. Spring MVC 처리 흐름](#7-spring-mvc-처리-흐름)
+- [8. MVC와 REST API](#8-mvc와-rest-api)
+- [9. 프로젝트 폴더 구조](#9-프로젝트-폴더-구조)
+- [10. 설정 파일](#10-설정-파일)
+- [11. 주요 어노테이션](#11-주요-어노테이션)
+- [12. Mustache 화면 이동 실습](#12-mustache-화면-이동-실습)
+- [13. 기술 보정](#13-기술-보정)
+- [14. 최종 체크리스트](#14-최종-체크리스트)
 
-녹취 00:01\~04:00
+## 1. 시험 핵심 요약
 
-## 2-1. Spring Boot가 필요한 이유
+| 주제 | 핵심 내용 |
+| --- | --- |
+| 3계층 아키텍처 | Presentation, Service, Data Access 계층으로 역할 분리 |
+| Data Access Layer | DB 연결과 CRUD 처리, DAO·Repository 역할 |
+| DataSource | DB 주소, 포트, 데이터베이스명, 계정, 비밀번호 등 연결 정보 |
+| Spring MVC | `DispatcherServlet`이 요청을 받고 적절한 컨트롤러 메서드로 전달 |
+| View Resolver | 컨트롤러가 반환한 논리적 뷰 이름을 실제 뷰 파일과 연결 |
+| REST API | 뷰 문서 대신 JSON 등의 데이터를 HTTP 응답 본문에 반환 |
+| HTTP 메시지 | 시작 줄, 헤더, 빈 줄, 본문으로 구성 |
+| 상태 코드 | `2xx` 성공, `3xx` 리다이렉션, `4xx` 클라이언트 오류, `5xx` 서버 오류 |
+| 정적 파일 | `src/main/resources/static`에 저장 |
+| 템플릿 파일 | `src/main/resources/templates`에 저장 |
+| 프로젝트 설정 | `application.properties` 또는 `application.yml` 사용 |
+| 빌드 설정 | `build.gradle`에서 플러그인과 의존성 관리 |
+| 단위 테스트 | `src/test/java`에서 JUnit으로 작성 |
+| 요청 매핑 | `@GetMapping`, `@PostMapping` 등으로 URI와 HTTP 메서드 연결 |
 
-기존 Spring Framework에서는 개발자가 라이브러리, 서버, 환경 설정 등을 상당 부분 직접 구성해야 했다.
+## 2. Spring Boot 프로젝트 생성
 
-Spring Boot는 이러한 작업을 자동화하고, 기본 설정을 제공해 프로젝트를 빠르게 시작할 수 있도록 만든 기술이다.
+**Spring Initializr**: Spring Boot 프로젝트의 초기 구조와 빌드 설정을 생성하는 도구
 
-| 구분     | Spring Framework | Spring Boot  |
-| ------ | ---------------- | ------------ |
-| 초기 설정  | 상대적으로 복잡         | 자동 설정 제공     |
-| 서버     | 별도 구성 가능         | 내장 서버 사용 가능  |
-| 의존성 관리 | 개발자가 직접 구성       | Starter 제공   |
-| 개발 속도  | 초기 설정 부담         | 빠른 시작        |
-| 관계     | 기반 프레임워크         | Spring 기반 도구 |
+- 접속 주소: [start.spring.io](https://start.spring.io/)
+- Project: `Gradle`
+- Language: `Java`
+- Java: `17`
+- Packaging: `Jar`
+- Configuration: `Properties`
 
-비유: Spring Framework가 건물의 기본 골조라면 Spring Boot는 전기·수도·기본 설비까지 상당 부분 준비된 건물과 비슷하다.
+### 2.1 주요 메타데이터
 
-## 2-2. Spring Initializr 설정
+| 항목 | 의미 | 예시 |
+| --- | --- | --- |
+| Group | 조직 또는 도메인을 뒤집은 식별자 | `com.example` |
+| Artifact | 빌드 결과물과 프로젝트의 기본 이름 | `article-project-c` |
+| Name | 프로젝트 표시 이름 | `article-project-c` |
+| Package name | Java 기본 패키지 | `com.example.articleproject` |
 
-사이트: [Spring Initializr](https://start.spring.io?utm_source=chatgpt.com)
+### 2.2 의존성
 
-| 설정 항목         | 수업에서 선택한 값                 |
-| ------------- | -------------------------- |
-| Project       | Gradle                     |
-| Language      | Java                       |
-| Spring Boot   | 강의에서 4.1.1 언급              |
-| Group         | `com.동향`으로 인식됨 (확인 필요)     |
-| Artifact      | `articleprojectc`에 해당하는 이름 |
-| Packaging     | Jar                        |
-| Java          | 17                         |
-| Configuration | `application.properties`   |
+| 의존성 | 역할 |
+| --- | --- |
+| Spring Web | Spring MVC와 내장 웹 서버를 이용한 웹 애플리케이션 개발 |
+| Spring Data JPA | Repository 추상화를 이용한 데이터 접근 |
+| H2 Database | 개발·테스트용 인메모리 관계형 데이터베이스 |
+| Mustache | 서버에서 HTML을 생성하는 템플릿 엔진 |
 
-주의: Spring Boot 4.1.1과 Java 17은 호환성을 확인해야 한다. Spring Boot 4 계열은 Java 17 이상을 요구하지만, 4.1.1이라는 세부 버전은 녹취 인식 오류일 수 있다. 실습실 프로젝트에 생성된 버전을 우선 확인하자.
+프로젝트 생성 후 압축을 풀고 IntelliJ IDEA에서 최상위 프로젝트 폴더를 `Open`으로 열기
 
-### 용어 정리
-
-- Gradle: 프로젝트 빌드와 의존성 관리를 자동화하는 도구.
-- Dependency: 의존성. 프로그램이 실행되거나 빌드될 때 필요한 외부 라이브러리.
-- Artifact: 빌드 결과물 또는 프로젝트를 식별하는 이름.
-- Package: 관련된 Java 클래스를 묶는 논리적 단위.
-- JAR: Java 클래스와 리소스를 묶어 배포하는 파일 형식.
-
-### Java 버전 확인
-
+```text
+article-project-c/
+├── build.gradle
+├── gradlew
+├── gradlew.bat
+├── settings.gradle
+└── src/
 ```
-java -version
+
+> 제출 시 프로젝트 폴더 전체를 압축하되, 불필요한 빌드 결과물과 IDE 캐시는 제외
+
+## 3. 3계층 아키텍처
+
+**3계층 아키텍처(Three-Layered Architecture)**: 애플리케이션을 역할에 따라 세 계층으로 분리하는 구조
+
+| 계층 | 주요 책임 | 대표 구성요소 |
+| --- | --- | --- |
+| Presentation Layer | HTTP 요청 수신, 입력 검증, 응답 생성 | Controller |
+| Service Layer | 핵심 업무 규칙과 트랜잭션 처리 | Service |
+| Data Access Layer | 데이터베이스 접근과 영속성 처리 | Repository, DAO |
+
+```mermaid
+flowchart LR
+    C[Client] --> P[Presentation Layer]
+    P --> S[Service Layer]
+    S --> D[Data Access Layer]
+    D --> DB[(Database)]
+    DB --> D --> S --> P --> C
 ```
 
-# 3. Servlet과 Spring Framework 비교
+계층 분리의 장점:
 
-녹취 04:00\~06:30
+- 역할과 책임의 명확한 구분
+- 특정 계층 변경이 다른 계층에 미치는 영향 감소
+- 기능별 테스트와 유지보수 용이
+- 팀 단위 병렬 개발에 유리
 
-시험 강조
+## 4. 데이터 접근 계층
 
-교수님은 Servlet과 Spring Framework의 차이를 시험에 출제할 수 있다고 강조했다.
+**DAO(Data Access Object)**: 데이터베이스 접근 코드를 분리하는 객체
 
-| 구분     | Servlet            | Spring Framework      |
-| ------ | ------------------ | --------------------- |
-| 개념     | Java 웹 요청·응답 처리 기술 | 애플리케이션 개발 프레임워크       |
-| 구조     | 개발자가 직접 설계         | 계층화와 DI 등 지원          |
-| DB 접근  | JDBC/DAO 직접 구현 가능  | JDBC, JPA 등과 통합       |
-| 보안     | 별도 구현·통합 필요        | Spring Security 활용 가능 |
-| 적합한 규모 | 단순 웹 기능에도 적합       | 복잡한 기업용 시스템에 강점       |
+**Repository**: 도메인 객체의 저장과 조회를 컬렉션처럼 추상화하는 구성요소
 
-교수님 설명의 핵심은 다음과 같다.
+Spring 생태계에서 사용할 수 있는 대표 기술:
 
-- 단순하고 작은 시스템은 Servlet만으로 구현할 수 있다.
-- 복잡하고 큰 시스템은 Spring을 사용하면 유지보수에 유리하다.
-- Spring은 엔터프라이즈(Enterprise, 기업용) 시스템 개발에 적합하다.
+- Spring JDBC
+- MyBatis
+- JPA
+- Hibernate
+- Spring Data JPA
 
-정확한 기술적 구분: Servlet은 구식 기술이라서 Spring보다 무조건 성능이 떨어지는 것이 아니다. Spring MVC 자체도 Servlet 기술을 기반으로 작동한다.
+### 4.1 DataSource
 
-따라서 시험에서는 교수님이 강조한 규모와 유지보수 차이를 기억하되, 실제로는 Spring이 Servlet 위에 편리한 추상화와 기능을 제공한다고 이해하는 것이 정확하다.
+**DataSource**: 애플리케이션이 데이터베이스 연결을 획득할 수 있도록 연결 정보를 관리하는 객체 또는 설정
 
-# 4. 3-Layered Architecture
+주요 연결 정보:
 
-녹취 06:30\~11:45
-
-시험 강조
-
-Layer는 영어로 '층'이라는 뜻이다. 프로그래밍에서는 역할에 따라 프로그램을 나누는 구조를 의미한다.
-
-하나의 거대한 프로그램으로 모든 기능을 구현하면 수정과 유지보수가 어려워진다. 그래서 Spring에서는 역할에 따라 3개의 계층으로 분리하는 방식을 많이 사용한다.
-
-Presentation Layer
-
-Controller — 클라이언트 요청·응답
-
-Service Layer
-
-Service — 핵심 비즈니스 로직
-
-Data Access Layer
-
-Repository / DAO — 데이터 접근
-
-Database
-
-## 4-1. Presentation Layer
-
-은행의 창구 역할이다.
-
-고객이 은행 창구에 업무를 요청하는 것처럼, 클라이언트가 보낸 HTTP 요청을 받아 적절한 처리를 수행하고 결과를 반환한다.
-
-대표 기술은 Spring MVC, Spring Web, `@Controller`, `@RestController`이다.
-
-## 4-2. Service Layer
-
-은행의 실제 업무 처리 부서다.
-
-예를 들어 계좌이체 요청이 들어오면 잔액 확인, 송금 가능 여부 판단, 거래 규칙 적용 등의 비즈니스 로직을 처리한다.
-
-대표 어노테이션은 `@Service`다.
-
-## 4-3. Data Access Layer
-
-은행의 고객 정보 및 거래 기록을 관리하는 부서다.
-
-데이터베이스에 데이터를 저장하고, 조회하고, 수정하고, 삭제하는 작업을 담당한다.
-
-대표 기술은 다음과 같다.
-
-| 기술              | 특징                      |
-| --------------- | ----------------------- |
-| JDBC            | Java의 기본 DB 접근 API      |
-| Spring JDBC     | JDBC 코드의 반복 작업을 줄임      |
-| MyBatis         | SQL 중심의 데이터 매핑 프레임워크    |
-| Hibernate       | JPA 구현체인 ORM 프레임워크      |
-| Spring Data JPA | JPA 기반 Repository 개발 지원 |
-
-### DAO와 Repository
-
-DAO는 Data Access Object, 즉 데이터 접근 객체라는 뜻이다.
-
-Repository는 저장소라는 뜻으로, 데이터 접근을 추상화한 구성 요소다.
-
-둘은 유사한 역할을 하지만 완전히 같은 개념은 아니다.
-
-## 4-4. DataSource
-
-시험 강조
-
-교수님이 특히 강조한 개념이다.
-
-데이터베이스에 연결하려면 일반적으로 다음 정보가 필요하다.
-
-- DB 주소(IP 또는 호스트명), 포트, 데이터베이스 이름
+- DBMS 호스트 또는 IP 주소
+- 포트 번호
+- 데이터베이스 이름
 - 사용자 계정
 - 비밀번호
-
-이 정보를 바탕으로 DB 연결을 관리하는 것이 `DataSource`다.
+- JDBC 드라이버와 URL
 
 예시:
 
-```
-spring.datasource.url=jdbc:mysql://localhost:3306/school
-spring.datasource.username=root
-spring.datasource.password=example
-```
-
-단, 엄밀히 말하면 DataSource는 단순히 세 가지 정보를 합친 문자열이 아니라 DB 연결을 제공하는 객체 또는 인터페이스다.
-
-Spring Boot는 위 설정을 사용해 DataSource를 구성할 수 있다.
-
-실제 운영 환경에서는 비밀번호를 Git에 올리지 않고 환경변수나 비밀 관리 시스템으로 관리한다.
-
-# 5. Spring MVC와 REST API
-
-녹취 11:45\~19:20
-
-시험 강조
-
-## 5-1. MVC의 의미
-
-MVC는 Model, View, Controller의 약자다.
-
-| 구성         | 원뜻  | 역할              |
-| ---------- | --- | --------------- |
-| Model      | 모델  | 데이터와 애플리케이션 상태  |
-| View       | 화면  | 사용자에게 보여줄 결과    |
-| Controller | 제어자 | 요청을 받아 처리 흐름 제어 |
-
-Spring MVC는 이 구조를 기반으로 `DispatcherServlet`, `HandlerMapping`, `ViewResolver` 등 요청 처리에 필요한 기능을 제공한다.
-
-## 5-2. Spring MVC의 요청 처리 과정
-
-클라이언트 요청
-
-DispatcherServlet
-
-HandlerMapping을 통한 컨트롤러 탐색
-
-Controller → Service → Repository
-
-ViewResolver → Mustache 템플릿
-
-HTML 응답 → 브라우저 렌더링
-
-주요 구성 요소
-
-- `DispatcherServlet`: 모든 요청을 접수하는 중앙 창구(Front Controller).
-- `HandlerMapping`: 요청 URL과 HTTP 메서드에 맞는 컨트롤러 메서드를 찾는 구성 요소.
-- `ViewResolver`: 컨트롤러가 반환한 뷰 이름을 실제 화면 템플릿과 연결하는 구성 요소.
-
-실제로는 `HandlerAdapter` 등 추가 구성 요소도 처리에 관여한다.
-
-## 5-3. MVC 방식과 REST API 방식 비교
-
-| 구분       | 서버 렌더링 MVC    | REST API 방식       |
-| -------- | ------------- | ----------------- |
-| 주된 응답    | HTML          | JSON 등 데이터        |
-| 화면 생성    | 주로 서버         | 주로 클라이언트          |
-| 컨트롤러     | `@Controller` | `@RestController` |
-| 템플릿 엔진   | Mustache 등    | 필수 아님             |
-| React 연동 | 가능            | 흔히 사용             |
-
-예를 들어 로그인을 처리한다면 다음과 같다.
-
-서버 렌더링 MVC
-
-1. 사용자가 로그인 요청
-2. Spring에서 로그인 처리
-3. 서버가 HTML 화면 생성
-4. 브라우저가 HTML 표시
-
-React + Spring REST API
-
-1. React에서 로그인 요청
-2. Spring에서 로그인 처리
-3. Spring이 JSON 데이터 응답
-4. React가 데이터를 받아 화면 렌더링
-
-JSON 예시:
-
-```
-{
-  "name": "Kim",
-  "message": "로그인 성공"
-}
+```properties
+spring.datasource.url=jdbc:h2:mem:testdb
+spring.datasource.driver-class-name=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
 ```
 
-### REST에 대한 정확한 이해
+> 실제 프로젝트의 비밀번호와 API 키는 GitHub에 커밋하지 않고 환경 변수나 별도 비밀 관리 수단 사용
 
-교수님은 REST API를 '백엔드가 화면 대신 데이터를 반환하는 방식'이라고 설명했다.
+## 5. 프레젠테이션 계층
 
-입문용 설명으로는 유용하지만, JSON을 반환한다고 무조건 REST API인 것은 아니다.
+**Presentation Layer**: 클라이언트의 요청을 받아 필요한 계층을 호출하고 처리 결과를 응답으로 만드는 영역
 
-REST는 Resource(자원)를 URI로 식별하고 HTTP 메서드와 상태 코드 등을 활용하는 아키텍처 스타일이다.
+은행 창구에 비유한 처리 흐름:
 
-또한 REST API는 반드시 JSON만 사용해야 하는 것도 아니다.
+1. 고객의 요청 접수
+2. 내부 담당 부서에 처리 요청
+3. 처리 결과 수신
+4. 고객에게 결과 전달
 
-# 6. HTTP 메시지 구조와 상태 코드
+Spring Boot 웹 애플리케이션에서는 Spring MVC와 내장 웹 서버를 사용하여 이 계층을 구현할 수 있음
 
-녹취 13:00\~18:00
+## 6. HTTP 메시지와 메서드
 
-시험 강조
+### 6.1 HTTP 메시지 구조
 
-HTTP 메시지는 다음 네 부분으로 구성된다.
+```text
+Start Line
+Headers
 
-1\. Start Line (시작 줄)
-
-요청: 메서드, 요청 대상, HTTP 버전
-
-2\. Headers (헤더)
-
-Host, Content-Type 등 부가 정보
-
-3\. 빈 줄 — 헤더와 본문 구분
-
-4\. Body (본문)
-
-JSON, HTML 등 실제 데이터. 없을 수도 있음
-
-### 요청 메시지 예시
-
-```
-POST /login HTTP/1.1
-Host: localhost:8081
-Content-Type: application/json
-
-{"id":"user1","password":"1234"}
+Body
 ```
 
-요청 시작 줄에는 HTTP 메서드, 요청 대상, HTTP 버전이 들어간다.
+요청 시작 줄:
 
-### 응답 메시지 예시
-
+```http
+GET /intro HTTP/1.1
 ```
+
+- HTTP 메서드: `GET`
+- 요청 대상: `/intro`
+- HTTP 버전: `HTTP/1.1`
+
+응답 시작 줄:
+
+```http
 HTTP/1.1 200 OK
-Content-Type: application/json
-
-{"name":"Kim"}
 ```
 
-응답 시작 줄에는 HTTP 버전, 상태 코드, 상태 설명이 들어간다.
+- HTTP 버전: `HTTP/1.1`
+- 상태 코드: `200`
+- 이유 문구: `OK`
 
-주의: 교수님 설명과 달리 일반적인 HTTP/1.1 응답 시작 줄에는 프론트엔드 주소가 들어가지 않는다.
+### 6.2 HTTP 메서드와 CRUD
 
-## 6-1. HTTP 상태 코드
+| CRUD | HTTP 메서드 | 용도 |
+| --- | --- | --- |
+| Create | `POST` | 새 자원 생성 |
+| Read | `GET` | 자원 조회 |
+| Update | `PUT`, `PATCH` | 자원 전체 또는 일부 수정 |
+| Delete | `DELETE` | 자원 삭제 |
 
-| 범위  | 의미         | 대표 코드               |
-| --- | ---------- | ------------------- |
-| 1xx | 정보성 응답     | 100 Continue        |
-| 2xx | 성공         | 200 OK, 201 Created |
-| 3xx | 리다이렉션      | 301, 302            |
-| 4xx | 클라이언트 측 오류 | 400, 401, 403, 404  |
-| 5xx | 서버 측 오류    | 500, 503            |
+`PUT`과 `PATCH`의 일반적인 구분:
 
-시험 핵심은 200 성공 / 302 리다이렉트 / 404 리소스 없음 / 500 서버 오류다.
+- `PUT`: 자원의 전체 표현을 교체하는 의미로 사용
+- `PATCH`: 자원의 일부 속성을 변경하는 의미로 사용
 
-다만 모든 4xx가 단순히 사용자의 잘못이라는 뜻은 아니다. 요청 자체나 인증·권한·리소스 상태 등에 문제가 있다는 의미다.
+### 6.3 상태 코드
 
-## 6-2. HTTP 메서드와 CRUD
+| 범위 | 의미 | 예시 |
+| --- | --- | --- |
+| `2xx` | 요청 성공 | `200 OK`, `201 Created` |
+| `3xx` | 리다이렉션 | `302 Found` |
+| `4xx` | 클라이언트 측 요청 오류 | `400 Bad Request`, `404 Not Found` |
+| `5xx` | 서버 내부 오류 | `500 Internal Server Error` |
 
-| CRUD   | 의미 | HTTP 메서드   |
-| ------ | -- | ---------- |
-| Create | 생성 | POST       |
-| Read   | 조회 | GET        |
-| Update | 수정 | PUT, PATCH |
-| Delete | 삭제 | DELETE     |
+### 6.4 GET 요청이 만들어지는 대표 상황
 
-`PUT`은 자원을 전체 교체하는 의미로 많이 사용하고, `PATCH`는 부분 수정에 사용한다. 단, 실제 동작은 API 설계에 따라 달라진다.
+- 브라우저 주소 표시줄에 URL 입력
+- `<a href="...">` 링크 클릭
+- 서버의 리다이렉트 응답을 받은 브라우저가 지정된 URL로 재요청
 
-# 7. 의존성(Dependency) 추가
+폼은 `method` 속성으로 `GET` 또는 `POST` 지정 가능
 
-녹취 19:20\~25:30
-
-이번 프로젝트에서 선택한 핵심 의존성은 네 가지다.
-
-| 의존성             | 역할                     | 관련 계층        |
-| --------------- | ---------------------- | ------------ |
-| Spring Web      | HTTP 요청 처리, Spring MVC | Presentation |
-| Spring Data JPA | DB 접근 및 Repository     | Data Access  |
-| H2 Database     | 개발·테스트용 데이터베이스         | Database     |
-| Mustache        | 서버 HTML 템플릿 엔진         | View         |
-
-## 7-1. H2 Database
-
-H2는 Java 기반의 경량 관계형 데이터베이스다.
-
-메모리 모드로 사용하면 서버가 종료될 때 데이터가 사라질 수 있어 실습과 테스트에 유용하다. 파일 기반 저장 방식도 지원한다.
-
-교수님은 중간 실습에는 H2를 사용하고, 기말 프로젝트에서는 실제 DBMS를 연결해야 한다고 설명했다.
-
-## 7-2. HTML, JSP, Thymeleaf, Mustache 비교
-
-시험 강조
-
-교수님이 성격이 다른 하나를 고르는 문제를 강조했다.
-
-| 기술        | 실행·처리 위치  | 특징                 |
-| --------- | --------- | ------------------ |
-| 일반 HTML   | 브라우저에서 해석 | 정적 문서              |
-| JSP       | 서버에서 처리   | Java 기반 동적 HTML 생성 |
-| Thymeleaf | 서버에서 처리   | HTML 친화적 템플릿 엔진    |
-| Mustache  | 서버에서 처리   | 문법이 단순한 템플릿 엔진     |
-
-시험 예상 정답: 일반 HTML
-
-JSP, Thymeleaf, Mustache는 서버 측에서 데이터를 반영해 HTML을 생성할 수 있다.
-
-반면 일반 정적 HTML은 서버가 별도로 템플릿 처리하지 않고 그대로 전달할 수 있다.
-
-Mustache를 선택한 이유는 문법이 비교적 간단하고, 이번 수업에서 화면보다 백엔드 처리 구조를 중점적으로 다루기 때문이다.
-
-# 8. Spring Boot 프로젝트 폴더 구조
-
-녹취 26:00\~37:00
-
-시험 강조
-
-```
-articleprojectc/
-├── src/
-│   ├── main/
-│   │   ├── java/
-│   │   │   └── .../
-│   │   │       └── ArticleprojectcApplication.java
-│   │   └── resources/
-│   │       ├── static/
-│   │       ├── templates/
-│   │       └── application.properties
-│   └── test/
-│       └── java/
-├── build.gradle
-├── settings.gradle
-└── gradlew
-```
-
-## 8-1. main과 test 차이
-
-| 폴더                   | 용도                    |
-| -------------------- | --------------------- |
-| `src/main/java`      | 실제 애플리케이션 Java 코드     |
-| `src/test/java`      | 테스트용 Java 코드          |
-| `src/main/resources` | 설정 및 리소스              |
-| `static`             | 정적 HTML, CSS, JS, 이미지 |
-| `templates`          | Mustache 등 서버 템플릿     |
-
-`src/test/java`에는 JUnit 테스트 클래스를 작성한다.
-
-## 8-2. JUnit
-
-시험 강조
-
-JUnit은 Java에서 사용하는 단위 테스트(Unit Test) 프레임워크다.
-
-전체 프로그램이 완성되지 않았더라도 특정 메서드나 기능을 독립적으로 테스트하는 데 사용한다.
-
-```
-@Test
-void additionTest() {
-    int result = 2 + 3;
-    assertEquals(5, result);
-}
-```
-
-`assertEquals(5, result)`는 예상값 5와 실제 결과가 같은지 검증한다.
-
-다만 다른 계층과의 실제 연동을 검증하는 테스트는 단위 테스트보다는 통합 테스트에 해당할 수 있다.
-
-## 8-3. static과 templates
-
-static
-
-파일을 그대로 제공
-
-logo.png, style.css, 일반 index.html
-
-templates
-
-템플릿 엔진으로 처리
-
-index.mustache, intro.mustache
-
-예를 들어 `index.html`이라도 Thymeleaf 문법을 사용한다면 일반적으로 `templates`에 배치한다.
-
-# 9. 환경 설정 파일 비교
-
-녹취 37:00\~43:50
-
-시험 강조
-
-교수님이 구분을 강조한 세 가지 설정이다.
-
-| 항목                       | 설정 대상              |
-| ------------------------ | ------------------ |
-| `application.properties` | Spring Boot 애플리케이션 |
-| `build.gradle`           | Gradle 빌드 및 의존성    |
-| IntelliJ Settings        | IDE 자체 환경          |
-
-## 9-1. 포트 번호 변경
-
-Spring Boot 내장 웹 서버는 별도 설정이 없다면 일반적으로 8080 포트를 사용한다.
-
-이번 수업에서는 8081로 변경했다.
-
-```
-spring.application.name=articleprojectc
-server.port=8081
-```
-
-서버 실행 후 접속 주소:
-
-```
-http://localhost:8081/
-```
-
-기존 외부 Tomcat 환경에서는 `server.xml`을 수정하는 경우가 있었지만, Spring Boot에서는 `server.port` 설정으로 변경할 수 있다.
-
-## 9-2. properties와 YAML 비교
-
-Properties
-
-```
-server.port=8081
-spring.application.name=articleprojectc
-```
-
-YAML
-
-```
-server:
-  port: 8081
-spring:
-  application:
-    name: articleprojectc
-```
-
-두 방식 모두 설정을 표현할 수 있다. 이번 실습은 Properties를 사용했다.
-
-## 9-3. CORS와 CSRF 구분
-
-교수님은 React와 Spring의 통신 보안도 언급했다.
-
-여기서 반드시 구분해야 할 개념이 있다.
-
-| 개념   | 역할                       |
-| ---- | ------------------------ |
-| CORS | 브라우저의 교차 출처 요청 허용 정책     |
-| CSRF | 사용자 권한을 악용한 위조 요청 공격     |
-| 인증   | 요청자가 누구인지 확인             |
-| 인가   | 요청자가 해당 작업을 할 권한이 있는지 확인 |
-
-CORS를 설정한다고 클라이언트의 신원이 인증되거나 메시지의 무결성이 보장되는 것은 아니다.
-
-React와 Spring 사이의 통신을 안전하게 구현하려면 HTTPS, 인증·인가, CSRF 방어 등 필요한 보안 수단을 별도로 적용해야 한다.
-
-# 10. DispatcherServlet과 ViewResolver
-
-녹취 59:00\~01:05:50
-
-시험 강조
-
-이번 수업에서 가장 중요한 처리 흐름 중 하나다.
-
-## 10-1. 요청이 들어왔을 때의 동작
-
-클라이언트가 다음 주소로 접속한다고 가정하자.
-
-```
-http://localhost:8081/
-```
-
-Spring MVC는 다음 순서로 처리한다.
-
-1. 클라이언트가 GET 요청
-
-   GET /
-2. DispatcherServlet이 요청 접수
-
-   중앙 요청 처리 담당
-3. HandlerMapping으로 컨트롤러 검색
-
-   `@GetMapping("/")`에 해당하는 메서드 찾기
-4. Controller 메서드 실행
-
-   `return "index";`
-5. ViewResolver가 뷰 이름 해석
-
-   index → index.mustache
-6. Mustache 엔진으로 HTML 생성
-
-   templates/index.mustache 사용
-7. HTML을 응답하고 브라우저에서 렌더링
-
-## 10-2. ViewResolver의 역할
-
-ViewResolver는 영어로 \*View(화면) + Resolver(해결하는 것)\*이다.
-
-컨트롤러가 반환한 논리적 뷰 이름을 실제 뷰와 연결하는 역할을 한다.
-
-예를 들어 다음과 같다.
-
-Controller 반환
-
-`"index"`
-
-ViewResolver
-
-실제 템플릿
-
-index.mustache
-
-Spring Boot의 일반적인 Mustache 기본 설정에서는 다음 위치의 템플릿을 찾는다.
-
-```
-classpath:/templates/index.mustache
-```
-
-교수님은 접두어(Prefix)와 접미어(Suffix)를 붙여 파일명을 완성한다고 설명했다.
-
-- Prefix: `classpath:/templates/`
-- View name: `index`
-- Suffix: `.mustache`
-
-이 개념은 시험에서 반드시 기억할 필요가 있다.
-
-# 11. Mustache 파일 생성 및 IntelliJ 설정
-
-녹취 01:06:00\~01:11:15
-
-## 11-1. Mustache 파일 생성
-
-IntelliJ에서 다음 경로로 이동한다.
-
-```
-src/main/resources/templates/
-```
-
-여기서 `index.mustache` 파일을 생성한다.
-
-IntelliJ에서 Mustache 문법이 제대로 인식되지 않는다면 다음 절차를 따른다.
-
-1. Settings → Plugins
-2. Marketplace에서 Mustache 검색
-3. 플러그인 설치
-4. 필요하면 Gradle 새로고침 또는 IntelliJ 재시작
-
-플러그인은 IDE에서 문법 강조와 편집 기능을 제공한다. 플러그인 설치 자체가 서버의 Mustache 의존성을 추가하는 것은 아니다.
-
-## 11-2. 첫 번째 화면 구현
-
-`index.mustache`
-
-```
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <title>홈</title>
-</head>
-<body>
-    <h1>메인 메뉴</h1>
-    <main>게시판 시스템에 오신 것을 환영합니다.</main>
-</body>
-</html>
-```
-
-현재는 Mustache 변수를 사용하지 않았으므로 일반 HTML과 거의 동일하다.
-
-추후 다음과 같이 데이터를 삽입할 수 있다.
-
-```
-<h1>안녕하세요, {{name}}님!</h1>
-```
-
-`{{name}}`은 서버가 템플릿에 전달한 데이터를 출력하는 Mustache 문법이다.
-
-# 12. URL과 URI의 차이
-
-녹취 01:00:00\~01:02:20
-
-시험 강조
-
-교수님은 요청 주소를 URL과 URI로 구분해서 설명했다.
-
-예시:
-
-```
-http://localhost:8081/intro
-```
-
-URL 구성
-
-http\://
-
-프로토콜
-
-localhost
-
-호스트
-
-:8081
-
-포트
-
-/intro
-
-경로(Path)
-
-교수님은 전체 주소를 URL, `/intro` 부분을 URI라고 설명했다.
-
-시험에서는 교수님이 의도한 구분을 기억하면 된다.
-
-다만 기술적으로 더 정확하게는 다음과 같다.
-
-- URI (Uniform Resource Identifier): 자원을 식별하는 식별자
-- URL (Uniform Resource Locator): 자원의 위치 또는 접근 방법을 나타내는 URI
-- Path: `/intro`와 같은 경로 부분
-
-즉, `/intro`는 URI 전체가 아니라 URL의 경로에 해당한다.
-
-# 13. GET, POST, Redirect, Forward
-
-녹취 01:11:15\~01:21:30
-
-시험 강조
-
-## 13-1. GET 요청이 발생하는 경우
-
-교수님이 강조한 GET 요청의 대표적인 세 가지 경우다.
-
-| 동작                   | HTTP 메서드 |
-| -------------------- | -------- |
-| 브라우저 주소창에 URL 입력     | GET      |
-| HTML `<a>` 링크 클릭     | GET      |
-| 일반적인 Redirect 이후 재요청 | GET      |
-
-예를 들어 다음 코드는 링크를 클릭하면 GET 요청을 발생시킨다.
-
-```
-<a href="/intro">대학 소개</a>
-```
-
-반면 HTML Form은 GET 또는 POST를 사용할 수 있다.
-
-```
+```html
 <form action="/login" method="post">
-    <input name="id">
-    <button type="submit">로그인</button>
+  <!-- 입력 요소 -->
 </form>
 ```
 
-이 경우 POST 요청이 만들어진다.
+## 7. Spring MVC 처리 흐름
 
-## 13-2. Redirect와 Forward
+**Spring MVC**: Model, View, Controller 역할을 분리하는 Spring의 웹 프레임워크
 
-| 구분      | Redirect                | Forward         |
-| ------- | ----------------------- | --------------- |
-| 동작      | 클라이언트에게 다른 주소로 이동하도록 지시 | 서버 내부에서 요청 전달   |
-| 추가 요청   | 일반적으로 발생                | 발생하지 않음         |
-| 주소창     | 변경됨                     | 일반적으로 유지        |
-| HTTP 상태 | 주로 3xx                  | 별도의 리다이렉트 응답 없음 |
-| 사용 예    | 로그인 후 페이지 이동            | 서버 내부 처리 위임     |
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Dispatcher as DispatcherServlet
+    participant Mapping as HandlerMapping
+    participant Controller
+    participant Resolver as ViewResolver
+    participant View
 
-Redirect
-
-브라우저
-
-서버 A
-
-A 요청 → 302 응답 → 브라우저가 B로 재요청
-
-Forward
-
-브라우저
-
-서버 내부 A → B
-
-하나의 클라이언트 요청 안에서 서버 내부 전달
-
-### Redirect 코드
-
-```
-@GetMapping("/old")
-public String oldPage() {
-    return "redirect:/intro";
-}
+    Client->>Dispatcher: GET /intro
+    Dispatcher->>Mapping: 처리할 핸들러 조회
+    Mapping-->>Dispatcher: Controller 메서드 반환
+    Dispatcher->>Controller: 메서드 호출
+    Controller-->>Dispatcher: 논리적 뷰 이름 "intro"
+    Dispatcher->>Resolver: 뷰 이름 해석
+    Resolver-->>Dispatcher: intro.mustache
+    Dispatcher->>View: 템플릿 렌더링
+    View-->>Client: HTML 응답
 ```
 
-브라우저가 `/old`를 요청하면 서버가 `/intro`로 이동하도록 지시한다.
+주요 구성요소:
 
-### Forward 코드
+- **DispatcherServlet**: 모든 MVC 요청을 받는 프런트 컨트롤러
+- **HandlerMapping**: 요청 URI와 HTTP 메서드에 맞는 핸들러 탐색
+- **Controller**: 요청 처리와 다음 단계 결정
+- **ViewResolver**: 논리적 뷰 이름을 실제 템플릿과 연결
+- **View**: 모델 데이터를 사용하여 HTML 생성
 
-```
-@GetMapping("/old")
-public String oldPage() {
-    return "forward:/intro";
-}
-```
+Mustache를 사용하는 경우 컨트롤러가 `"intro"`를 반환하면 기본적으로 `templates/intro.mustache`를 찾아 렌더링
 
-서버 내부에서 `/intro` 처리로 요청을 전달한다.
+## 8. MVC와 REST API
 
-중요한 예외: 302 리다이렉트는 POST 요청 이후 브라우저가 GET으로 재요청하는 경우가 일반적이지만, 307·308은 원래 HTTP 메서드를 유지하도록 정의되어 있다. 따라서 모든 Redirect가 무조건 GET인 것은 아니다.
+| 구분 | MVC 화면 응답 | REST API 데이터 응답 |
+| --- | --- | --- |
+| 대표 어노테이션 | `@Controller` | `@RestController` |
+| 일반적인 반환값 | 논리적 뷰 이름과 Model | 객체, 컬렉션, `ResponseEntity` |
+| 응답 본문 | 렌더링된 HTML | 주로 JSON |
+| 화면 렌더링 위치 | 서버와 브라우저가 역할 분담 | React 등의 프런트엔드 |
 
-# 14. Spring Bean과 어노테이션
+REST 컨트롤러 예시:
 
-녹취 01:23:00\~01:30:30
-
-시험 강조
-
-## 14-1. Bean이란?
-
-Bean의 일반적인 영어 뜻은 '콩'이지만, Spring에서는 Spring 컨테이너가 생성하고 관리하는 객체를 의미한다.
-
-예를 들어 Java에서는 객체를 직접 생성할 수 있다.
-
-```
-Student student = new Student();
-```
-
-반면 Spring에서는 적절한 설정이나 어노테이션을 통해 Spring 컨테이너가 객체를 관리하도록 할 수 있다.
-
-그렇게 관리되는 객체가 Spring Bean이다.
-
-교수님은 이를 회사의 직원에 비유했다.
-
-- Bean: 직원
-- Spring Container: 직원 관리 시스템
-- 어노테이션: 직원의 담당 업무 표시
-
-## 14-2. 핵심 어노테이션 4개
-
-| 어노테이션         | 의미               | 계층           |
-| ------------- | ---------------- | ------------ |
-| `@Component`  | 일반적인 Spring Bean | 공통           |
-| `@Controller` | 요청 처리 컨트롤러       | Presentation |
-| `@Service`    | 비즈니스 로직 담당       | Service      |
-| `@Repository` | 데이터 접근 담당        | Data Access  |
-
-`@Controller`, `@Service`, `@Repository`는 모두 `@Component`를 기반으로 하는 특수화된 어노테이션이다.
-
-### 코드 예시
-
-```
-@Controller
-public class MainController {
-}
-```
-
-Spring이 컴포넌트 스캔을 통해 이 클래스를 발견하면 Bean으로 등록할 수 있다.
-
-```
-@Service
-public class UserService {
-}
-```
-
-서비스 계층에서 동작할 객체임을 표현한다.
-
-```
-@Repository
-public class UserRepository {
-}
-```
-
-데이터 접근을 담당하는 객체임을 표현한다.
-
-`@Repository`는 단순한 역할 표시 외에도 특정 데이터 접근 예외를 Spring 예외 체계로 변환하는 데 관여할 수 있다.
-
-Spring Data JPA의 Repository 인터페이스는 일반적으로 `@Repository`를 직접 붙이지 않아도 자동으로 구현체가 등록될 수 있다.
-
-## 14-3. @Controller와 @RestController
-
-시험 강조
-
-| 구분           | `@Controller`      | `@RestController` |
-| ------------ | ------------------ | ----------------- |
-| 주된 용도        | 서버 렌더링 MVC         | REST API          |
-| String 반환    | 기본적으로 뷰 이름으로 해석 가능 | 응답 본문 데이터         |
-| ViewResolver | 뷰 반환 시 사용          | 일반적인 데이터 응답 시 불필요 |
-| React 연동     | 가능                 | 일반적으로 많이 사용       |
-
-### @Controller
-
-```
-@Controller
-public class PageController {
-    @GetMapping("/")
-    public String home() {
-        return "index";
-    }
-}
-```
-
-`"index"`는 뷰 이름으로 해석된다.
-
-### @RestController
-
-```
+```java
 @RestController
-public class ApiController {
-    @GetMapping("/api/hello")
-    public String hello() {
-        return "Hello";
+@RequestMapping("/api/users")
+public class UserController {
+
+    @GetMapping("/{id}")
+    public UserResponse findUser(@PathVariable Long id) {
+        return new UserResponse(id, "홍길동");
     }
 }
 ```
 
-이 경우 `"Hello"`가 HTTP 응답 본문으로 전달된다.
+응답 객체는 Jackson에 의해 JSON으로 직렬화될 수 있음
 
-`@RestController`는 실질적으로 `@Controller`와 `@ResponseBody`의 기능을 결합한 어노테이션이다.
-
-### 교수님 설명에서 바로잡을 점
-
-교수님은 `@Controller`가 붙은 클래스의 메서드는 반드시 `String`을 반환한다고 설명했지만, 이는 정확하지 않다.
-
-실제로는 `ModelAndView`, `ResponseEntity`, `void` 등 다양한 반환 타입을 사용할 수 있다. `@ResponseBody`를 붙여 JSON 등의 데이터를 직접 반환할 수도 있다.
-
-시험에서는 일반적인 MVC 뷰 반환과 REST 데이터 반환의 차이를 중점적으로 기억하면 된다.
-
-# 15. 인터페이스와 추상 메서드
-
-녹취 01:30:30\~01:34:00
-
-교수님은 Java의 인터페이스 개념도 복습했다.
-
-## 15-1. Interface
-
-Interface의 영어 원뜻은 '접점' 또는 '인터페이스'다. 프로그래밍에서는 구현 클래스가 따라야 할 계약 또는 규격을 정의한다.
-
-```
-interface Animal {
-    void sound();
+```json
+{
+  "id": 1,
+  "name": "홍길동"
 }
 ```
 
-`void sound();`는 메서드 본문이 없는 추상 메서드다.
+## 9. 프로젝트 폴더 구조
 
-이를 구현하는 클래스는 다음과 같다.
-
-```
-class Dog implements Animal {
-    @Override
-    public void sound() {
-        System.out.println("멍멍");
-    }
-}
-```
-
-`Dog` 클래스는 `Animal` 인터페이스가 요구하는 `sound()`를 구현해야 한다.
-
-## 15-2. implements와 extends
-
-| 키워드          | 역할                 |
-| ------------ | ------------------ |
-| `implements` | 인터페이스 구현           |
-| `extends`    | 클래스 상속 또는 인터페이스 확장 |
-| `abstract`   | 추상 클래스·추상 메서드 선언   |
-| `@Override`  | 상위 타입의 메서드 재정의 표시  |
-
-단, 인터페이스가 추상 메서드로만 구성된다는 설명은 오래된 Java 기준의 단순화다.
-
-현재 Java 인터페이스에는 `default`, `static`, `private` 메서드처럼 본문을 가진 메서드도 존재할 수 있다.
-
-## 15-3. Spring Controller 인터페이스에 대한 주의점
-
-교수님은 `@Controller`가 내부적으로 Spring의 `Controller` 인터페이스를 구현하는 것과 같다고 설명했다.
-
-하지만 `@Controller` 어노테이션을 붙인다고 자동으로 `org.springframework.web.servlet.mvc.Controller` 인터페이스를 구현하는 것은 아니다.
-
-현대 Spring MVC에서는 `@GetMapping` 등의 어노테이션을 기반으로 컨트롤러 메서드를 호출한다.
-
-따라서 `handleRequest()`라는 메서드를 반드시 구현할 필요도 없고, 모든 컨트롤러 메서드가 `String`을 반환해야 하는 것도 아니다.
-
-# 16. HTTP 매핑 어노테이션
-
-녹취 01:34:00\~01:39:30
-
-시험 강조
-
-Servlet에서는 다음과 같은 코드를 사용했다.
-
-```
-@WebServlet("/login")
-public class LoginServlet extends HttpServlet {
-    @Override
-    protected void doGet(
-        HttpServletRequest req,
-        HttpServletResponse resp) {
-    }
-}
+```text
+src/
+├── main/
+│   ├── java/
+│   │   └── com/example/articleproject/
+│   │       ├── ArticleProjectApplication.java
+│   │       └── controller/
+│   │           └── MainController.java
+│   └── resources/
+│       ├── static/
+│       ├── templates/
+│       │   ├── index.mustache
+│       │   └── intro.mustache
+│       └── application.properties
+└── test/
+    └── java/
 ```
 
-Spring MVC에서는 메서드 위에 HTTP 매핑 어노테이션을 붙여 요청을 연결할 수 있다.
+### 9.1 `src/main`
 
-| 어노테이션            | HTTP 메서드 | CRUD   |
-| ---------------- | -------- | ------ |
-| `@GetMapping`    | GET      | Read   |
-| `@PostMapping`   | POST     | Create |
-| `@PutMapping`    | PUT      | Update |
-| `@PatchMapping`  | PATCH    | Update |
-| `@DeleteMapping` | DELETE   | Delete |
+- `java`: 애플리케이션의 Java 소스 코드
+- `resources/static`: CSS, JavaScript, 이미지, 정적 HTML 등의 정적 자원
+- `resources/templates`: Mustache, Thymeleaf 등 서버 템플릿 파일
+- `application.properties`: 애플리케이션 환경 설정
 
-### GET 매핑 예시
+### 9.2 `src/test`
 
-```
-@GetMapping("/intro")
-public String intro() {
-    return "intro";
-}
-```
+**JUnit**: Java 코드의 단위 테스트를 작성하고 실행하는 테스트 프레임워크
 
-이 코드의 의미는 다음과 같다.
+- 애플리케이션 코드와 테스트 코드 분리
+- 클래스 또는 기능 단위 검증
+- 다른 계층과 연동하기 전 독립적인 오류 확인
 
-- `@GetMapping`: GET 방식 요청
-- `"/intro"`: 요청 경로
-- `intro()`: 실행할 Java 메서드
-- `"intro"`: 반환할 뷰 이름
+## 10. 설정 파일
 
-교수님은 시험에서 경로 앞의 `/`를 빠뜨리면 오답 처리하겠다고 강조했다.
+| 위치 | 대상 | 대표 설정 |
+| --- | --- | --- |
+| `build.gradle` | Gradle 빌드 | 플러그인, 의존성, Java 버전 |
+| `application.properties` | Spring Boot 애플리케이션 | 서버 포트, DataSource, 로그 수준 |
+| IntelliJ `Settings` | IDE | JDK, Gradle 실행 방식, 플러그인 |
 
-실제 Spring에서는 일부 매핑 표기가 정규화되어 동작할 수 있지만, 수업 및 시험에서는 `/intro`처럼 앞에 슬래시를 명시하는 것이 안전하다.
+서버 포트 변경:
 
-# 17. Spring Boot 실습 전체 재현
-
-녹취 01:39:30\~01:49:00
-
-이번 수업의 최종 실습 목표는 홈 화면과 대학 소개 화면을 만들고, 링크를 클릭해 서로 이동하는 것이다.
-
-## 17-1. 최종 폴더 구조
-
-```
-articleprojectc/
-├── src/
-│   └── main/
-│       ├── java/
-│       │   └── com/example/articleprojectc/
-│       │       ├── ArticleprojectcApplication.java
-│       │       └── controller/
-│       │           └── MainController.java
-│       └── resources/
-│           ├── static/
-│           ├── templates/
-│           │   ├── index.mustache
-│           │   └── intro.mustache
-│           └── application.properties
-└── build.gradle
-```
-
-패키지명 `com.example.articleprojectc`는 실행 가능한 예시다. 실제 수업에서 만든 프로젝트의 패키지명은 녹취만으로 정확히 확인되지 않는다.
-
-## 17-2. application.properties
-
-```
-spring.application.name=articleprojectc
+```properties
 server.port=8081
 ```
 
-포트 번호를 8081로 설정한다.
+실행 후 접속 주소:
 
-## 17-3. MainController.java
-
+```text
+http://localhost:8081/
 ```
-package com.example.articleprojectc.controller;
+
+`server.port`가 없으면 일반적으로 기본 포트 `8080` 사용
+
+## 11. 주요 어노테이션
+
+### 11.1 계층별 컴포넌트
+
+| 어노테이션 | 의미 |
+| --- | --- |
+| `@Component` | 일반적인 Spring 관리 객체 등록 |
+| `@Controller` | MVC 컨트롤러 등록 |
+| `@RestController` | 응답 본문에 데이터를 작성하는 컨트롤러 등록 |
+| `@Service` | 서비스 계층의 컴포넌트 등록 |
+| `@Repository` | 데이터 접근 계층의 컴포넌트 등록과 예외 변환 지원 |
+
+**Spring Bean**: Spring IoC 컨테이너가 생성하고 생명주기를 관리하는 객체
+
+### 11.2 요청 매핑
+
+| 어노테이션 | HTTP 메서드 |
+| --- | --- |
+| `@GetMapping` | `GET` |
+| `@PostMapping` | `POST` |
+| `@PutMapping` | `PUT` |
+| `@PatchMapping` | `PATCH` |
+| `@DeleteMapping` | `DELETE` |
+
+매핑 경로는 `/`로 시작하는 형태 권장
+
+```java
+@GetMapping("/intro")
+```
+
+## 12. Mustache 화면 이동 실습
+
+### 12.1 컨트롤러
+
+`src/main/java/.../controller/MainController.java`
+
+```java
+package com.example.articleproject.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class MainController {
+
     @GetMapping("/")
     public String home() {
         return "index";
@@ -1051,414 +407,149 @@ public class MainController {
 }
 ```
 
-이 코드가 이번 수업에서 작성한 가장 핵심적인 Java 코드다.
+실행 흐름:
 
-`@Controller`는 이 클래스를 웹 요청 처리용 Bean으로 등록할 수 있도록 표시한다.
+- `GET /` → `home()` → `index.mustache`
+- `GET /intro` → `intro()` → `intro.mustache`
 
-`@GetMapping("/")`는 루트 경로로 GET 요청이 들어왔을 때 `home()` 메서드를 실행한다.
+### 12.2 홈 화면
 
-`return "index";`는 `index.mustache` 템플릿을 선택하게 한다.
+`src/main/resources/templates/index.mustache`
 
-`@GetMapping("/intro")`는 `/intro` 경로를 `intro()` 메서드와 연결한다.
-
-## 17-4. index.mustache
-
-```
-<!DOCTYPE html>
+```html
+<!doctype html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>홈</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>홈</title>
 </head>
 <body>
-    <h1>메뉴</h1>
+  <header>
+    <h1>게시판 시스템</h1>
     <nav>
-        <a href="/">홈</a>
-        <a href="/intro">대학 소개</a>
+      <a href="/">홈</a>
+      <a href="/intro">대학 소개</a>
     </nav>
-    <main>게시판 시스템에 오신 것을 환영합니다.</main>
+  </header>
+
+  <main>
+    <p>게시판 시스템에 오신 것을 환영합니다.</p>
+  </main>
 </body>
 </html>
 ```
 
-## 17-5. intro.mustache
+### 12.3 소개 화면
 
-```
-<!DOCTYPE html>
+`src/main/resources/templates/intro.mustache`
+
+```html
+<!doctype html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>대학 소개</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>대학 소개</title>
 </head>
 <body>
-    <h1>메뉴</h1>
+  <header>
+    <h1>게시판 시스템</h1>
     <nav>
-        <a href="/">홈</a>
-        <a href="/intro">대학 소개</a>
+      <a href="/">홈</a>
+      <a href="/intro">대학 소개</a>
     </nav>
-    <main>우리 대학을 소개합니다.</main>
+  </header>
+
+  <main>
+    <p>대학 소개 페이지입니다.</p>
+  </main>
 </body>
 </html>
 ```
 
-## 17-6. 실행 결과
+### 12.4 실행 확인
 
-[http://localhost:8081/](http://localhost:8081/?utm_source=chatgpt.com)
+1. `ArticleProjectApplication`의 `main()` 실행
+2. 콘솔에서 애플리케이션 시작 메시지 확인
+3. 브라우저에서 `http://localhost:8081/` 접속
+4. `대학 소개` 클릭 후 `/intro` 화면 확인
+5. `홈` 클릭 후 `/` 화면 확인
 
-## 메뉴
+문제 발생 시 확인 항목:
 
-홈
+- Java 17 선택 여부
+- Gradle 동기화 완료 여부
+- Mustache 의존성 추가 여부
+- 템플릿 파일의 위치와 확장자
+- `application.properties`의 포트 번호
+- 매핑 경로의 `/` 누락 여부
+- 동일 포트를 사용하는 다른 프로세스 존재 여부
 
-대학 소개
+## 13. 기술 보정
 
-게시판 시스템에 오신 것을 환영합니다.
+자동 전사 원문에는 강의 중 단순화된 표현과 잘못 인식된 용어가 포함되어 있어 다음과 같이 보정
 
-홈 화면의 예상 렌더링 결과
+### 13.1 Servlet과 Spring
 
-[http://localhost:8081/intro](http://localhost:8081/intro?utm_source=chatgpt.com)
+- Servlet을 단순히 구기술, Spring을 신기술로 구분하는 것은 부정확
+- Servlet API는 Java 웹 요청과 응답을 처리하는 기반 기술
+- Spring MVC는 Servlet 기술 위에서 요청 매핑, 데이터 바인딩, 검증, 예외 처리 등의 추상화 제공
+- 프로젝트 규모만으로 기술을 선택하기보다 요구사항, 팀 역량, 보안, 유지보수성, 생태계를 함께 고려
 
-## 메뉴
+### 13.2 `@Controller`
 
-홈
+- `@Controller`를 붙이는 것은 `Controller` 인터페이스를 직접 `implements`하는 것과 동일하지 않음
+- 현대 Spring MVC는 어노테이션 기반 핸들러 메서드를 탐색하여 호출
+- 컨트롤러 메서드가 항상 `String`만 반환해야 하는 것은 아님
+- `String`은 일반적으로 논리적 뷰 이름으로 사용할 수 있지만 `ModelAndView`, `ResponseEntity` 등 다양한 반환 형식 지원
 
-대학 소개
+### 13.3 `@RestController`
 
-우리 대학을 소개합니다.
-
-대학 소개 화면의 예상 렌더링 결과
-
-## 17-7. 실행 절차
-
-1. IntelliJ에서 프로젝트 루트 폴더를 연다.
-2. Gradle 의존성 다운로드와 동기화가 완료될 때까지 기다린다.
-3. `ArticleprojectcApplication.java`의 `main()`을 실행한다.
-4. 콘솔에 `Started ...` 메시지가 나타나는지 확인한다.
-5. 브라우저에서 `http://localhost:8081/`에 접속한다.
-6. 대학 소개 메뉴를 클릭하고 `/intro` 페이지가 나오는지 확인한다.
-7. 홈 메뉴를 클릭해 다시 `/`로 돌아오는지 확인한다.
-
-빌드 실행 문제가 발생하면 교수님이 설명한 다음 설정도 확인한다.
-
-`Settings → Build, Execution, Deployment → Build Tools → Gradle`
-
-Gradle 실행 설정에서 IntelliJ IDEA를 사용하도록 변경해 볼 수 있다. 다만 모든 빌드 오류가 이 설정으로 해결되는 것은 아니다.
-
-## 17-8. 페이지 이동 과정
-
-1\. 사용자가 대학 소개 클릭
-
-`<a href="/intro">`
-
-2\. 브라우저가 GET /intro 요청
-
-DispatcherServlet이 요청 접수
-
-3\. MainController.intro() 실행
-
-`return "intro";`
-
-4\. ViewResolver가 템플릿 선택
-
-`intro.mustache`
-
-5\. HTML 응답
-
-브라우저가 대학 소개 화면 표시
-
-# 18. 교수님이 시험 출제를 강조한 내용 총정리
-
-녹취록에서 교수님이 직접 시험 출제를 언급하거나 답을 요구하며 반복 강조한 개념들을 정리했다.
-
-| 중요도 | 시험 개념                      | 핵심 정답                                           |
-| --- | -------------------------- | ----------------------------------------------- |
-| 최상  | Servlet과 Spring 차이         | 구조, 규모, 유지보수                                    |
-| 최상  | 3-Layered Architecture     | Presentation, Service, Data Access              |
-| 최상  | DAO 관련 기술                  | JDBC, MyBatis, Hibernate, JPA                   |
-| 최상  | DataSource                 | DB 연결 정보 및 연결 관리                                |
-| 최상  | Spring MVC                 | DispatcherServlet, HandlerMapping, ViewResolver |
-| 최상  | HTTP 메시지 구조                | 시작 줄, 헤더, 빈 줄, 바디                               |
-| 최상  | HTTP 상태 코드                 | 2xx, 3xx, 4xx, 5xx                              |
-| 최상  | Controller와 RestController | 뷰 반환과 데이터 반환                                    |
-| 최상  | GET 매핑                     | `@GetMapping("/경로")`                            |
-| 높음  | HTML과 템플릿 엔진               | 정적 HTML vs JSP·Thymeleaf·Mustache               |
-| 높음  | static과 templates          | 정적 파일 vs 서버 템플릿                                 |
-| 높음  | main과 test                 | 실제 코드 vs 테스트 코드                                 |
-| 높음  | JUnit                      | Java 단위 테스트                                     |
-| 높음  | 환경 설정 파일                   | properties, Gradle, IDE Settings                |
-| 높음  | 서버 포트 설정                   | `server.port=8081`                              |
-| 높음  | Bean 관련 어노테이션              | Component, Controller, Service, Repository      |
-| 높음  | Redirect와 Forward          | 재요청 vs 서버 내부 전달                                 |
-| 높음  | GET 요청 발생                  | 주소창, a 태그, 일반적 Redirect                         |
-| 높음  | ViewResolver               | 뷰 이름을 템플릿과 연결                                   |
-| 보통  | 인터페이스                      | 구현 클래스가 따르는 규격                                  |
-| 보통  | URL과 URI                   | 전체 주소와 경로 구분                                    |
-
-중요도는 녹취록에서의 반복·강조 정도를 기준으로 분류한 것이며, 실제 시험 배점이 공개된 것은 아니다.
-
-# 19. 헷갈리기 쉬운 개념 비교
-
-| 개념 A              | 개념 B                   | 결정적 차이                        |
-| ----------------- | ---------------------- | ----------------------------- |
-| Spring            | Spring Boot            | 프레임워크 / 자동 설정·실행 편의성          |
-| Servlet           | Spring MVC             | 웹 처리 기반 기술 / 이를 활용한 MVC 프레임워크 |
-| Controller        | Service                | 요청 처리 / 비즈니스 로직               |
-| Service           | Repository             | 업무 규칙 / 데이터 접근                |
-| Controller        | RestController         | 기본적인 뷰 해석 / 응답 본문 반환          |
-| DispatcherServlet | HandlerMapping         | 요청 처리 총괄 / 처리 메서드 탐색          |
-| HandlerMapping    | ViewResolver           | 컨트롤러 탐색 / 뷰 해석                |
-| static            | templates              | 정적 파일 / 템플릿 처리                |
-| Gradle            | application.properties | 빌드 관리 / 앱 설정                  |
-| Redirect          | Forward                | 새 클라이언트 요청 / 내부 전달            |
-| GET               | POST                   | 조회 / 데이터 제출·생성                |
-| PUT               | PATCH                  | 전체 교체 / 부분 수정                 |
-| JPA               | Hibernate              | ORM 명세 / 구현체                  |
-| CORS              | CSRF                   | 교차 출처 정책 / 요청 위조 공격           |
-
-# 20. 예상 시험 문제
-
-실제 교수님의 출제 방식에 맞춰 객관식, OX, 빈칸, 코드 해석을 혼합했다. 정답은 접어두었으며, 먼저 풀어본 뒤 확인할 수 있다.
-
-## 예상 객관식 12문제
-
-4지선다 · 녹취록 기반
-
-0/12 응답
-
-1\. Spring의 3-Layered Architecture에 포함되지 않는 것은?
-
-1\. Presentation Layer
-
-2\. Service Layer
-
-3\. Data Access Layer
-
-4\. Compilation Layer
-
-2\. Spring MVC에서 요청을 처음 받아 처리 흐름을 총괄하는 구성 요소는?
-
-1\. ViewResolver
-
-2\. DispatcherServlet
-
-3\. Repository
-
-4\. DataSource
-
-3\. HandlerMapping의 역할은?
-
-1\. DB 연결
-
-2\. 템플릿 확장자 변경
-
-3\. 요청을 처리할 컨트롤러 메서드 탐색
-
-4\. HTML을 브라우저에서 렌더링
-
-4\. Data Access Layer와 가장 관련이 적은 기술은?
-
-1\. MyBatis
-
-2\. Hibernate
-
-3\. Spring Data JPA
-
-4\. Mustache
-
-5\. 일반 HTML, JSP, Thymeleaf, Mustache 중 서버 측 템플릿 기술이 아닌 것은?
-
-1\. 일반 HTML
-
-2\. JSP
-
-3\. Thymeleaf
-
-4\. Mustache
-
-6\. HTTP 응답 상태 코드 404의 의미는?
-
-1\. 요청 성공
-
-2\. 리다이렉트
-
-3\. 요청한 리소스를 찾을 수 없음
-
-4\. 서버 내부 오류
-
-7\. Spring Boot의 서버 포트 번호를 설정하는 올바른 구문은?
-
-1\. port.server=8081
-
-2\. server.port=8081
-
-3\. spring.port:8081
-
-4\. gradle.port=8081
-
-8\. @GetMapping("/intro")가 붙은 메서드가 처리하는 요청은?
-
-1\. POST /intro
-
-2\. GET /intro
-
-3\. DELETE /intro
-
-4\. GET /index
-
-9\. 일반적인 @Controller 메서드가 return "index"를 반환할 때 그 문자열의 의미는?
-
-1\. 반드시 HTTP 응답 본문
-
-2\. 데이터베이스 테이블 이름
-
-3\. 뷰 이름
-
-4\. 서버 포트 이름
-
-10\. Spring에서 일반적으로 Bean을 등록하는 어노테이션이 아닌 것은?
-
-1\. @Component
-
-2\. @Service
-
-3\. @Repository
-
-4\. @GetMapping
-
-11\. src/main/resources/templates의 일반적인 용도는?
-
-1\. Java 단위 테스트
-
-2\. 서버 템플릿 보관
-
-3\. Gradle 실행 파일
-
-4\. 이미지 전용 저장소
-
-12\. Redirect와 Forward의 차이를 가장 정확하게 설명한 것은?
-
-1\. 둘 다 항상 브라우저 재요청 발생
-
-2\. Redirect는 일반적으로 재요청, Forward는 서버 내부 전달
-
-3\. Forward는 항상 302 응답
-
-4\. Redirect는 주소창이 절대 변경되지 않음
-
-채점 및 해설 확인
-
-## 20-2. OX 예상 문제
-
-1\. Spring Boot는 기본적으로 내장 웹 서버를 사용할 수 있다.
-
-OX
-
-2\. Spring Bean은 개발자가 new로 만든 모든 Java 객체를 의미한다.
-
-OX
-
-3\. @RestController는 일반적으로 반환 데이터를 HTTP 응답 본문에 작성한다.
-
-OX
-
-4\. 브라우저 주소창에 URL을 입력하면 일반적으로 GET 요청이 발생한다.
-
-OX
-
-5\. HTTP 응답 시작 줄에는 반드시 HTTP 메서드가 들어간다.
-
-OX
-
-6\. @Controller의 모든 메서드는 반드시 String을 반환해야 한다.
-
-OX
-
-OX 채점하기
-
-## 20-3. 주관식·코드 예상 문제
-
-다음은 교수님이 강조한 실습 문법을 기반으로 한 문제다.
-
-문제 1. Spring의 3-Layered Architecture를 구성하는 세 계층을 작성하시오.
-
-문제 2. Spring MVC에서 클라이언트의 요청을 처음 접수하는 구성 요소와 적절한 컨트롤러를 찾는 구성 요소를 각각 작성하시오.
-
-문제 3. Spring Boot에서 서버 포트를 9090으로 변경하는 설정 구문을 작성하시오.
-
-문제 4. 다음 코드의 빈칸을 채우시오.
-
-```
-@Controller
-public class MainController {
-
-    @________("/intro")
-    public String intro() {
-        return "________";
-    }
-}
+```java
+@RestController = @Controller + @ResponseBody
 ```
 
-조건: GET 방식으로 `/intro` 요청을 처리하고 `intro.mustache` 화면을 반환해야 한다.
+- 반환값을 뷰 이름으로 해석하지 않고 기본적으로 HTTP 응답 본문에 작성
+- 객체 반환 시 메시지 컨버터가 JSON 등으로 직렬화
 
-문제 5. 다음 코드를 실행했을 때 클라이언트가 받는 응답은 무엇인지 설명하시오.
+### 13.4 REST
 
-```
-@RestController
-public class TestController {
-    @GetMapping("/test")
-    public String test() {
-        return "hello";
-    }
-}
-```
+- JSON을 반환한다는 사실만으로 RESTful API가 완성되는 것은 아님
+- 자원 중심 URI, HTTP 메서드 의미, 상태 코드, 무상태성 등의 원칙을 함께 고려
 
-문제 6. Redirect와 Forward의 차이를 클라이언트의 재요청 여부와 브라우저 주소창의 변화를 기준으로 서술하시오.
+### 13.5 HTTP 시작 줄
 
-주관식 모범답안 보기
+- 요청 시작 줄에는 메서드, 요청 대상, HTTP 버전 포함
+- 응답 시작 줄에는 HTTP 버전, 상태 코드, 이유 문구 포함
+- 응답 시작 줄에 프런트엔드 주소가 들어간다는 설명은 부정확
 
-# 21. 최종 암기 노트
+### 13.6 CSRF, CORS, 인증, HTTPS
 
-시험 직전에 확인할 수 있도록 핵심만 압축했다.
+- **CSRF**: 로그인된 사용자의 권한을 악용하여 의도하지 않은 요청을 보내게 만드는 공격
+- **CORS**: 브라우저가 다른 출처의 자원 요청을 허용할지 결정하는 정책
+- **인증**: 요청을 보낸 사용자의 신원 확인
+- **HTTPS**: 전송 구간의 암호화와 서버 인증 제공
 
-Spring 구조
+단순한 공용 키 문자열 하나로 프런트엔드와 백엔드의 신뢰가 모두 보장되는 것은 아님
 
-Presentation → Service → Data Access
+### 13.7 JPA와 Hibernate
 
-Spring MVC 처리 순서
+- **JPA**: Java 객체와 관계형 데이터베이스를 매핑하기 위한 표준 명세
+- **Hibernate**: JPA를 구현하는 대표적인 ORM 프레임워크
+- **Spring Data JPA**: JPA 기반 Repository 구현을 단순화하는 Spring Data 모듈
 
-DispatcherServlet → HandlerMapping → Controller → ViewResolver → View → Response
+## 14. 최종 체크리스트
 
-핵심 어노테이션
-
-`@Component`, `@Controller`, `@RestController`, `@Service`, `@Repository`, `@GetMapping`, `@PostMapping`
-
-HTTP
-
-시작 줄 → 헤더 → 빈 줄 → 바디
-
-200 성공 / 302 이동 / 404 없음 / 500 서버 오류
-
-프로젝트 구조
-
-main = 실제 코드, test = 테스트, static = 정적 파일, templates = 템플릿
-
-설정
-
-`build.gradle` = 의존성·빌드
-
-`application.properties` = Spring Boot 설정
-
-`server.port=8081` = 포트 변경
-
-이번 실습의 핵심
-
-`@GetMapping("/")` → `return "index"` → `index.mustache`
-
-`@GetMapping("/intro")` → `return "intro"` → `intro.mustache`
-
-## 수업에서 다음 시간까지 해야 할 일
-
-교수님은 이번에 만든 Spring Boot 프로젝트를 계속 누적해서 사용할 것이라고 설명했다. 따라서 프로젝트 전체 폴더를 보관해야 한다.
-
-다음 수업 전까지는 `index.mustache`, `intro.mustache`, `MainController.java`, `application.properties`가 정상적으로 구성되어 있고 두 페이지가 모두 열리는지 확인하면 된다.
-
-특히 시험 준비에서는 Spring MVC의 요청 처리 순서, 3계층 구조, 어노테이션 역할, HTTP 메시지, 설정 파일의 차이를 최우선으로 복습하는 것이 효율적이다.
+- [ ] 3계층의 이름과 각 역할 설명
+- [ ] DataSource에 필요한 정보 설명
+- [ ] Spring MVC 요청 처리 순서 설명
+- [ ] `@Controller`와 `@RestController` 비교
+- [ ] HTTP 요청과 응답 시작 줄 구분
+- [ ] HTTP 메서드와 CRUD 연결
+- [ ] 상태 코드 범위별 의미 구분
+- [ ] `static`과 `templates` 폴더 용도 구분
+- [ ] `build.gradle`, `application.properties`, IDE 설정의 대상 구분
+- [ ] `@Component`, `@Service`, `@Repository`, `@Controller` 설명
+- [ ] `@GetMapping("/")`의 의미 설명
+- [ ] `/`와 `/intro` 화면 이동 실습 완료
