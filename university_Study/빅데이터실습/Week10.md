@@ -7,6 +7,9 @@
 - OpenAI Python SDK와 Responses API를 이용한 기본 질문 전송
 - 토큰 사용량을 이용한 API 비용 계산
 - Pandas 분석 결과를 프롬프트에 포함해 AI로 해석하는 흐름 이해
+- Streamlit의 사이드바 메뉴와 페이지 함수 연결 구조 이해
+- `mpg.py`의 필터링·다중 선택·그룹 집계 코드 이해
+- 파일별 역할과 코드 구역을 주석으로 구분하는 방법 이해
 
 ---
 
@@ -63,9 +66,6 @@ Responses API 호출
 - [OpenAI Platform API Keys](https://platform.openai.com/api-keys)
 - 생성 직후 안전한 위치에 보관
 - 코드, 노트북 출력, GitHub 저장소, 캡처 화면에 실제 키 포함 금지
-
-> [!CAUTION]
-> 원본 10주차 HTML의 출력 셀에 실제 API Key 전체가 노출되어 있음. 해당 키는 더 이상 비밀로 볼 수 없으므로 즉시 폐기(revoke)하고 새 키를 발급해야 함. 새 문서에는 실제 키를 복사하지 않음.
 
 OpenAI 공식 보안 권장 사항:
 
@@ -412,7 +412,439 @@ print(response.usage)
 
 ---
 
-## 9. 핵심 정리
+## 9. Streamlit 프로젝트 구조
+
+추가로 제공된 세 파일은 하나의 Streamlit 앱을 구성하는 모듈.
+
+```text
+myStreamlit/
+├── mystreamlit.py   # 앱 시작점, 사이드바 메뉴, 페이지 연결
+├── openaichat.py    # GPT 메뉴 화면
+└── mpg.py           # mpg 데이터 조회·집계 화면
+```
+
+### 파일 연결 관계
+
+```mermaid
+flowchart TD
+    A["streamlit run mystreamlit.py"]
+    B["mystreamlit.py 실행"]
+    C{"사이드바 메뉴 선택"}
+    D["Home 화면"]
+    E["openaichat.page()"]
+    F["mpg.page()"]
+    G["Study·others: 현재 분기 없음"]
+
+    A --> B --> C
+    C -->|Home| D
+    C -->|GPT| E
+    C -->|mpg analysis| F
+    C -->|Study 또는 others| G
+```
+
+**모듈 분리**: 메뉴와 공통 화면은 `mystreamlit.py`, 세부 기능은 각각의 파일에 배치하는 구조
+
+### 실행 순서
+
+1. `mystreamlit.py`에서 `openaichat`, `mpg` 모듈 import
+2. 메인 제목과 사이드바 출력
+3. 사용자가 메뉴 선택
+4. 선택 결과에 따라 `openaichat.page()` 또는 `mpg.page()` 호출
+5. 각 모듈의 `page()` 함수가 담당 화면 출력
+
+---
+
+## 10. `mpg.py` — 데이터 분석 화면
+
+### 주요 기능
+
+- `mpg.csv`를 DataFrame으로 불러오기
+- 제조사 한 개 또는 여러 개 선택
+- 선택한 제조사의 데이터 필터링
+- 제조사별 평균 고속도로 연비 계산
+- 그룹 기준·분석 컬럼·집계 함수를 사용자가 선택
+
+### 구역별 주석을 추가한 전체 코드
+
+```python
+# ==================================================
+# 1. 패키지 import
+# ==================================================
+import streamlit as st
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+# ==================================================
+# 2. mpg 분석 페이지 함수
+# ==================================================
+def page():
+    # ----------------------------------------------
+    # 2-1. 페이지 제목과 원본 데이터 출력
+    # ----------------------------------------------
+    st.title("mpg.py_index")
+
+    mpg = pd.read_csv(
+        "/Users/ma/Downloads/Doit_Python-main/Data/mpg.csv"
+    )
+    st.dataframe(mpg)
+
+    # ----------------------------------------------
+    # 2-2. 코드에서 지정한 제조사 조회
+    # ----------------------------------------------
+    company = "hyundai"
+
+    # 문자열 안에 값을 직접 작성하는 방법
+    # result1 = mpg.query('manufacturer == "hyundai"')
+
+    # @를 사용해 Python 변수 company의 값을 참조
+    result1 = mpg.query("manufacturer == @company")
+
+    st.title("#쿼리를 직접 작성")
+    st.dataframe(result1)
+
+    # ----------------------------------------------
+    # 2-3. 제조사 한 개 선택
+    # ----------------------------------------------
+    userInput = st.selectbox(
+        "selectbox",
+        mpg["manufacturer"].unique().tolist()
+    )
+
+    # Boolean indexing으로 선택한 제조사만 필터링
+    result2 = mpg[mpg["manufacturer"] == userInput]
+    st.dataframe(result2)
+
+    # ----------------------------------------------
+    # 2-4. 제조사 여러 개 선택
+    # ----------------------------------------------
+    userInput_2 = st.multiselect(
+        "multiselect",
+        mpg["manufacturer"].unique().tolist()
+    )
+
+    # 여러 값과 비교할 때는 == 대신 isin() 사용
+    result3 = mpg[mpg["manufacturer"].isin(userInput_2)]
+    st.dataframe(result3)
+
+    # ----------------------------------------------
+    # 2-5. query()를 사용한 다중 선택 결과 조회
+    # ----------------------------------------------
+    st.title(userInput_2)
+    result4 = mpg.query("manufacturer == @userInput_2")
+    st.dataframe(result4)
+
+    # ----------------------------------------------
+    # 2-6. 선택한 제조사별 평균 고속도로 연비
+    # ----------------------------------------------
+    result4_1 = result4.groupby("manufacturer").agg(
+        mean_hwy=("hwy", "mean")
+    )
+    st.dataframe(result4_1)
+
+    # ----------------------------------------------
+    # 2-7. 사용자 선택에 따른 동적 그룹 집계
+    # ----------------------------------------------
+    var1 = st.selectbox(
+        "도시 연비, 고속도로 연비",
+        ["manufacturer", "drv", "trans", "category"]
+    )
+    var2 = st.selectbox(
+        "choose column",
+        ["hwy", "cty"]
+    )
+    var3 = st.selectbox(
+        "value",
+        ["mean", "max", "min", "count"]
+    )
+
+    # var1: 그룹 기준, var2: 계산 대상, var3: 집계 함수
+    result5 = mpg.groupby(var1).agg(
+        metric=(var2, var3)
+    )
+    st.dataframe(result5)
+
+
+# ==================================================
+# 3. mpg.py를 직접 실행했을 때의 시작점
+# ==================================================
+if __name__ == "__main__":
+    page()
+    st.text("mpg.py가 직접 실행됨")
+```
+
+### 코드 구역별 역할
+
+| 구역 | 입력 | 처리 | 출력 |
+| --- | --- | --- | --- |
+| 원본 데이터 | `mpg.csv` | `pd.read_csv()` | 전체 DataFrame |
+| 고정 제조사 | `company = "hyundai"` | `query()` | Hyundai 데이터 |
+| 단일 선택 | `selectbox` | `== userInput` | 선택한 제조사 데이터 |
+| 다중 선택 | `multiselect` | `isin(userInput_2)` | 여러 제조사 데이터 |
+| 평균 연비 | 다중 선택 결과 | `groupby()` + `mean` | 제조사별 평균 `hwy` |
+| 동적 집계 | `var1`, `var2`, `var3` | `groupby().agg()` | 사용자 지정 통계 |
+
+### 데이터 처리 검증
+
+제공된 `/Users/ma/Downloads/Doit_Python-main/Data/mpg.csv`로 화면 이외의 Pandas 처리 구문을 실행한 결과:
+
+- 전체 데이터: 234행
+- `hyundai` 조회: `query()`와 Boolean indexing 모두 14행
+- `hyundai`, `audi` 다중 조회: `isin()`과 `query()` 모두 32행
+- 두 다중 조회 결과: 동일한 DataFrame
+- 제조사별 집계 그룹: 15개
+
+Streamlit 화면은 실행하지 않았지만, 핵심 필터링과 그룹 집계 코드가 실제 데이터에서 동작함을 확인.
+
+### `selectbox`와 `multiselect`
+
+**`st.selectbox()`**: 목록에서 하나의 값 선택
+
+```python
+userInput = st.selectbox(
+    "selectbox",
+    mpg["manufacturer"].unique().tolist()
+)
+```
+
+`userInput`에는 문자열 하나가 저장되므로 `==` 비교 사용.
+
+**`st.multiselect()`**: 목록에서 여러 값을 선택
+
+```python
+userInput_2 = st.multiselect(
+    "multiselect",
+    mpg["manufacturer"].unique().tolist()
+)
+```
+
+`userInput_2`에는 리스트가 저장되므로 `isin()` 사용.
+
+```python
+result3 = mpg[mpg["manufacturer"].isin(userInput_2)]
+```
+
+### 동적 그룹 집계 흐름
+
+사용자 선택 예시:
+
+```text
+var1 = "manufacturer"  # 제조사별 그룹
+var2 = "hwy"           # 고속도로 연비 계산
+var3 = "mean"          # 평균 계산
+```
+
+실행되는 핵심 코드:
+
+```python
+result5 = mpg.groupby(var1).agg(
+    metric=(var2, var3)
+)
+```
+
+위 선택값을 직접 대입한 것과 같은 의미:
+
+```python
+result5 = mpg.groupby("manufacturer").agg(
+    metric=("hwy", "mean")
+)
+```
+
+### 주의점
+
+- CSV 경로가 사용자 컴퓨터의 절대경로로 고정된 상태
+- 다른 컴퓨터나 폴더에서 실행할 경우 `FileNotFoundError` 가능
+- 다중 선택 전에는 `userInput_2`가 빈 리스트이므로 `result3`, `result4`도 빈 DataFrame
+- `numpy`, `matplotlib.pyplot`, `seaborn`은 현재 코드에서 직접 사용되지 않음
+- `st.title(userInput_2)`보다 선택값 표시 목적의 `st.write(userInput_2)`가 의미상 더 명확
+
+---
+
+## 11. `openaichat.py` — GPT 화면
+
+현재 파일은 OpenAI API 호출 코드 없이 화면 제목만 출력하는 초기 구조.
+
+### 구역별 주석을 추가한 전체 코드
+
+```python
+# ==================================================
+# 1. 패키지 import
+# ==================================================
+import streamlit as st
+
+
+# ==================================================
+# 2. mystreamlit.py에서 호출할 GPT 페이지
+# ==================================================
+def page():
+    st.title("openAI Chat")
+
+
+# ==================================================
+# 3. openaichat.py 단독 실행 화면
+# ==================================================
+def main():
+    st.title("openaichat.py run")
+
+
+# ==================================================
+# 4. 파일을 직접 실행했을 때의 시작점
+# ==================================================
+if __name__ == "__main__":
+    main()
+```
+
+### `page()`와 `main()`의 차이
+
+| 실행 방법 | `__name__` 값 | 실행 함수 | 화면 제목 |
+| --- | --- | --- | --- |
+| `mystreamlit.py`에서 import | `openaichat` | 메뉴 선택 시 `page()` | `openAI Chat` |
+| `openaichat.py` 직접 실행 | `__main__` | `main()` | `openaichat.py run` |
+
+### 현재 구현 범위
+
+- 포함: GPT 페이지 제목
+- 미포함: 질문 입력창, OpenAI 클라이언트, Responses API 호출, 답변 출력, 대화 기록
+
+따라서 `GPT` 메뉴를 선택해도 현재는 `openAI Chat` 제목만 표시. 앞에서 학습한 `OpenAI()`와 `client.responses.create()`는 아직 이 파일에 연결되지 않은 상태.
+
+---
+
+## 12. `mystreamlit.py` — 메인 앱과 메뉴 라우팅
+
+### 구역별 주석을 추가한 전체 코드
+
+```python
+# ==================================================
+# 1. 패키지와 페이지 모듈 import
+# ==================================================
+import streamlit as st
+import openaichat
+import mpg
+
+
+# ==================================================
+# 2. 메인 페이지 제목 함수
+# ==================================================
+def page():
+    st.title("StreamlitStudy")
+
+
+# ==================================================
+# 3. 메인 화면 출력
+# ==================================================
+page()
+
+
+# ==================================================
+# 4. 사이드바 구성
+# ==================================================
+st.sidebar.title("StreamlitStudy")
+st.sidebar.image("https://github.com/")
+
+selected_menu = st.sidebar.selectbox(
+    "Choose your menu",
+    ["Home", "GPT", "mpg analysis", "Study", "others"]
+)
+
+
+# ==================================================
+# 5. 선택한 메뉴에 따른 페이지 연결
+# ==================================================
+if selected_menu == "Home":
+    st.text("Home")
+
+elif selected_menu == "GPT":
+    st.text("GPT")
+    openaichat.page()
+
+elif selected_menu == "mpg analysis":
+    st.text("mpg analysis")
+    mpg.page()
+```
+
+### 메뉴 라우팅
+
+**라우팅(routing)**: 사용자의 선택에 따라 실행할 화면 또는 함수를 결정하는 처리
+
+```text
+Home         → st.text("Home")
+GPT          → openaichat.page()
+mpg analysis → mpg.page()
+Study        → 현재 처리 코드 없음
+others       → 현재 처리 코드 없음
+```
+
+### import 시 `__main__` 구역이 실행되지 않는 이유
+
+`mystreamlit.py`가 `import mpg`를 실행하면 `mpg.py`의 `__name__`은 `"mpg"`.
+
+```python
+if __name__ == "__main__":
+    page()
+```
+
+조건이 거짓이므로 import 순간에는 `mpg.page()`가 자동 실행되지 않음. 사용자가 `mpg analysis`를 선택했을 때 `mystreamlit.py`가 명시적으로 `mpg.page()` 호출.
+
+동일하게 `openaichat.py`의 `main()`도 import만으로 실행되지 않음.
+
+### 주의점
+
+- `Study`, `others` 메뉴에 대응하는 `elif` 구문이 없어 선택 시 세부 내용 없음
+- `st.sidebar.image("https://github.com/")`는 이미지 파일 주소가 아니라 웹페이지 주소
+- 모듈 파일 세 개가 같은 폴더에 있어야 `import openaichat`, `import mpg` 성공
+- 함수와 파일 이름을 다르게 유지하면 import 구조 파악이 쉬움
+
+---
+
+## 13. Streamlit 앱 실행
+
+### 필요한 패키지
+
+```bash
+python -m pip install streamlit pandas numpy matplotlib seaborn openai
+```
+
+### 실행 명령
+
+```bash
+cd /Users/ma/Downloads/Doit_Python-main/Data/Streamlit/myStreamlit
+streamlit run mystreamlit.py
+```
+
+### 예상 동작
+
+1. 브라우저에 `StreamlitStudy` 제목 표시
+2. 왼쪽 사이드바에 메뉴 표시
+3. `GPT` 선택 시 `openAI Chat` 제목 표시
+4. `mpg analysis` 선택 시 전체 mpg 데이터와 분석 위젯 표시
+5. 제조사나 집계 조건 변경 시 선택값에 맞는 DataFrame 표시
+
+> 예상 동작은 코드 정적 분석을 기준으로 작성. 이번 문서 작업에서는 Streamlit 서버와 OpenAI API를 실제로 실행하지 않음.
+
+### 세 파일과 Week10 API 내용의 관계
+
+```text
+mystreamlit.py
+    └─ GPT 메뉴
+        └─ openaichat.page()
+            └─ 현재: 제목만 출력
+            └─ 확장 지점: Responses API 호출 코드
+
+mystreamlit.py
+    └─ mpg analysis 메뉴
+        └─ mpg.page()
+            ├─ mpg.csv 분석
+            └─ 향후 분석 결과를 AI 프롬프트로 전달 가능
+```
+
+OpenAI API 연결 위치는 `openaichat.page()` 내부가 가장 자연스러움. 공식 Python 예제도 `OpenAI()` 객체와 `client.responses.create()`를 이용. 참고: [OpenAI API Python Quickstart](https://developers.openai.com/api/docs/quickstart#install-the-openai-sdk-and-run-an-api-call)
+
+---
+
+## 14. 핵심 정리
 
 | 항목 | 핵심 내용 |
 | --- | --- |
@@ -424,6 +856,13 @@ print(response.usage)
 | `usage` | 입력·출력·전체 토큰 사용량 |
 | f-string | 데이터 분석 결과를 프롬프트에 삽입하는 방법 |
 | 검증 | AI 설명과 Pandas 집계 결과의 일치 여부 확인 |
+| `mystreamlit.py` | 메뉴 표시와 세부 페이지 연결 |
+| `openaichat.py` | GPT 화면 모듈, 현재는 제목만 구현 |
+| `mpg.py` | 제조사 필터링과 그룹 집계 화면 |
+| `selectbox` | 하나의 선택값 반환 |
+| `multiselect` | 여러 선택값을 리스트로 반환 |
+| `isin()` | Series의 값이 선택 목록에 포함되는지 검사 |
+| `groupby().agg()` | 그룹별 통계 계산 |
 
 ### 시험·복습 포인트
 
@@ -432,6 +871,9 @@ print(response.usage)
 - 비용 계산: `토큰 수 × 100만 토큰당 가격 ÷ 1,000,000`
 - 분석 흐름: 데이터 불러오기 → 파생 변수 생성 → 등급 분류 → 집계 → 프롬프트 작성 → AI 해석
 - 보안 원칙: API Key 출력·공유·Git 커밋 금지
+- Streamlit 실행 흐름: `mystreamlit.py` → 메뉴 선택 → 각 모듈의 `page()`
+- 단일 선택 비교: `==`, 다중 선택 비교: `isin()`
+- 동적 집계 구성: 그룹 기준 `var1` + 분석 컬럼 `var2` + 집계 함수 `var3`
 
 ---
 
