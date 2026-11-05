@@ -511,6 +511,206 @@ typedef struct enode {
 - 사원번호 탐색: `eid`가 BST의 키이므로 한쪽 서브트리만 선택하며 탐색
 - 입사연도 탐색: `syear`는 정렬 기준이 아니므로 전체 트리를 순회하며 검사
 
+### 12.4 `p260bstex_file.c` 파일 입력 실습
+
+이 프로그램은 텍스트 파일에서 `학번 key`와 `성적 score`를 읽어 학번을 기준으로 BST를 구축한다. 구축이 끝나면 `scan_bst()`로 전체 노드를 중위 순회하여 학번순으로 출력한다.
+
+#### 입력 파일 형식
+
+한 줄에 정수형 학번과 실수형 성적을 작성한다.
+
+```text
+1280 3.02
+3140 4.21
+2560 3.89
+```
+
+#### 실행 흐름
+
+```text
+명령행에서 입력 파일명 전달
+        ↓
+fopen()으로 파일 열기
+        ↓
+fscanf()로 학번과 성적 읽기
+        ↓
+첫 데이터는 루트 노드로 생성
+        ↓
+나머지 데이터는 insert_bst()로 삽입
+        ↓
+scan_bst()로 중위 순회 출력
+```
+
+#### 실습의 핵심 빈칸: `scan_bst()`
+
+```c
+void scan_bst(BSTNODE *ptr) {
+    if (ptr != NULL) {
+        scan_bst(ptr->left);
+        printf("%d %.2f\n", ptr->key, ptr->score);
+        scan_bst(ptr->right);
+    }
+}
+```
+
+BST의 중위 순회 순서인 `왼쪽 → 루트 → 오른쪽`을 사용하므로 학번이 오름차순으로 출력된다.
+
+#### 보완한 전체 코드
+
+원본의 학습 구조를 유지하면서 다음 사항을 보완했다.
+
+- `void main()`을 표준 형식인 `int main()`으로 변경
+- `argv[1]`을 사용하기 전에 `argc` 검사
+- `malloc()` 실패 검사
+- `fscanf()`가 두 값을 모두 읽었는지 검사
+- 사용이 끝난 파일과 동적 메모리 정리
+
+```c
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct bstnode {
+    struct bstnode *left;   // 왼쪽 자식 노드
+    int key;                // 학번: BST의 비교 기준
+    float score;            // 성적
+    struct bstnode *right;  // 오른쪽 자식 노드
+} BSTNODE;
+
+// BST 삽입, 중위 순회, 메모리 해제 함수
+int insert_bst(BSTNODE *root, int id, float score);
+void scan_bst(const BSTNODE *ptr);
+void free_bst(BSTNODE *ptr);
+
+int main(int argc, char *argv[]) {
+    BSTNODE *tree = NULL;
+    int sid;
+    float grade;
+    FILE *input;
+
+    // 실행할 때 입력 파일명이 전달되었는지 확인
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s input_file\n", argv[0]);
+        return 1;
+    }
+
+    // 읽기 모드로 데이터 파일 열기
+    input = fopen(argv[1], "r");
+    if (input == NULL) {
+        fprintf(stderr, "Invalid Open input file...\n");
+        return 1;
+    }
+
+    // 파일에서 학번과 성적을 한 쌍씩 읽기
+    while (fscanf(input, "%d %f", &sid, &grade) == 2) {
+        if (tree == NULL) {
+            // 첫 번째 데이터로 루트 노드 생성
+            tree = malloc(sizeof(*tree));
+            if (tree == NULL) {
+                fclose(input);
+                return 1;
+            }
+
+            tree->key = sid;
+            tree->score = grade;
+            tree->left = NULL;
+            tree->right = NULL;
+        } else {
+            // 두 번째 데이터부터 BST 규칙에 따라 삽입
+            int result = insert_bst(tree, sid, grade);
+            if (result < 0) {
+                fclose(input);
+                free_bst(tree);
+                return 1;
+            }
+        }
+    }
+
+    // 파일을 닫고, 학번순으로 출력한 뒤 메모리 정리
+    fclose(input);
+    scan_bst(tree);
+    free_bst(tree);
+    return 0;
+}
+
+int insert_bst(BSTNODE *root, int id, float score) {
+    BSTNODE *tptr = root;
+    BSTNODE *before = NULL;
+    BSTNODE *node;
+
+    // 새 학번이 들어갈 NULL 위치까지 이동
+    while (tptr != NULL) {
+        before = tptr;  // 새 노드의 부모가 될 노드
+
+        if (id < tptr->key)
+            tptr = tptr->left;
+        else if (id > tptr->key)
+            tptr = tptr->right;
+        else
+            return 0;  // 중복 학번
+    }
+
+    // 삽입할 새 노드 생성
+    node = malloc(sizeof(*node));
+    if (node == NULL)
+        return -1;
+
+    node->key = id;
+    node->score = score;
+    node->left = NULL;
+    node->right = NULL;
+
+    // 부모 노드의 왼쪽 또는 오른쪽에 새 노드 연결
+    if (id < before->key)
+        before->left = node;
+    else
+        before->right = node;
+
+    return 1;
+}
+
+void scan_bst(const BSTNODE *ptr) {
+    if (ptr != NULL) {
+        scan_bst(ptr->left);                         // 작은 학번
+        printf("%d %.2f\n", ptr->key, ptr->score);   // 현재 학번
+        scan_bst(ptr->right);                        // 큰 학번
+    }
+}
+
+void free_bst(BSTNODE *ptr) {
+    if (ptr != NULL) {
+        // 자식 노드를 먼저 해제한 후 현재 노드 해제
+        free_bst(ptr->left);
+        free_bst(ptr->right);
+        free(ptr);
+    }
+}
+```
+
+#### 실행 방법
+
+```bash
+clang -std=c11 -Wall -Wextra -Werror -pedantic \
+  p260bstex_file.c -o p260bstex_file
+
+./p260bstex_file btreedata.txt
+```
+
+제공된 `btreedata.txt`를 사용한 출력은 학번 오름차순이다.
+
+```text
+1101 4.01
+1235 4.07
+1280 3.02
+2210 3.27
+2222 3.25
+2550 3.88
+2560 3.89
+3110 2.88
+3140 4.21
+3560 2.75
+```
+
 ---
 
 ## 13. 확인학습 6-1
@@ -584,6 +784,32 @@ void asort(tree_pointer root) {
 
 `asort()`는 이름만 다를 뿐 BST의 중위 순회와 같은 구조이다.
 
+### 14.5 내림차순 출력 함수
+
+```c
+void dsort(tree_pointer ptr) {
+    if (ptr != NULL) {
+        dsort(ptr->right_child);
+        printf("%d ", ptr->key);
+        dsort(ptr->left_child);
+    }
+}
+```
+
+`dsort()`는 일반적인 중위 순회의 방문 순서를 반대로 바꾼 **역중위 순회**이다.
+
+```text
+오른쪽 서브트리 → 루트 → 왼쪽 서브트리
+```
+
+BST에서는 오른쪽 서브트리에 큰 키가 있고 왼쪽 서브트리에 작은 키가 있으므로, 이 순서로 방문하면 키가 내림차순으로 출력된다.
+
+확인학습 6-2 트리에 `dsort()`를 적용한 결과는 다음과 같다.
+
+```text
+700 630 600 550 300 250 170 110
+```
+
 ---
 
 ## 15. 강의 코드에서 확인할 주의점
@@ -609,6 +835,7 @@ void asort(tree_pointer root) {
 - BST는 `왼쪽 키 < 루트 키 < 오른쪽 키` 규칙을 재귀적으로 만족한다.
 - BST 탐색은 작으면 왼쪽, 크면 오른쪽으로 이동한다.
 - BST를 중위 순회하면 키가 오름차순으로 출력된다.
+- BST를 역중위 순회하면 키가 내림차순으로 출력된다.
 - BST 탐색과 삽입은 평균 `O(log n)`, 한쪽으로 치우치면 최악 `O(n)`이다.
 
 ## 참고 자료
