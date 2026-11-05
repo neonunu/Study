@@ -319,6 +319,219 @@ int insert_node(NODETYPE *root, const char *word) {
 
 `before`는 `NULL`을 만나기 직전의 부모 노드를 기억한다. 반복문이 끝나면 새 노드를 `before->left` 또는 `before->right`에 연결한다.
 
+### 7.4 `wordtree1.c` 문자열 BST 완성 실습
+
+`wordtree1.c`는 사용자가 단어를 직접 입력하여 문자열 BST를 구축하고, 특정 단어를 탐색한 뒤 전체 단어를 알파벳순으로 출력하는 프로그램이다.
+
+#### 프로그램 흐름
+
+```text
+단어 입력
+   ↓
+"quit"인지 검사
+   ↓
+첫 단어이면 루트 생성
+   ↓
+나머지 단어는 insert_node()로 삽입
+   ↓
+찾을 단어를 입력받아 search() 실행
+   ↓
+inorder()로 전체 단어를 알파벳순 출력
+```
+
+#### 전체 코드
+
+원본의 한국어 안내 문자열은 CP949 계열로 저장되어 UTF-8 터미널에서 깨질 수 있다. 아래 코드는 알고리즘을 그대로 유지하고 안내 문자열과 주석을 UTF-8 한국어로 정리한 버전이다.
+
+```c
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct node {
+    struct node *left;   // 사전순으로 작은 단어
+    char *word;          // 현재 노드에 저장된 단어
+    struct node *right;  // 사전순으로 큰 단어
+} NODETYPE;
+
+int insert_node(NODETYPE *root, char *word);
+NODETYPE *search(NODETYPE *root, char *key);
+void inorder(NODETYPE *root);
+int read_line(char *buf, int size);
+
+// 단어를 입력받아 BST를 만들고 탐색 결과와 전체 단어를 출력
+int main(void) {
+    NODETYPE *tree = NULL;
+    NODETYPE *ptr;
+    char wbuf[30];
+
+    printf("단어 트리에 저장할 단어를 입력하세요.\n");
+    printf("입력을 끝내려면 quit을 입력하세요.\n");
+
+    // quit을 입력하거나 입력이 끝날 때까지 단어를 반복해서 읽기
+    while (read_line(wbuf, sizeof(wbuf)) && strcmp(wbuf, "quit") != 0) {
+        // 트리가 비어 있으면 첫 단어를 루트로 생성
+        if (tree == NULL) {
+            tree = malloc(sizeof(*tree));
+            if (tree == NULL)
+                return 1;
+
+            tree->word = malloc(strlen(wbuf) + 1);
+            if (tree->word == NULL) {
+                free(tree);
+                return 1;
+            }
+
+            strcpy(tree->word, wbuf);
+            tree->left = NULL;
+            tree->right = NULL;
+        } else {
+            // 두 번째 단어부터 BST 규칙에 따라 삽입
+            insert_node(tree, wbuf);
+        }
+    }
+
+    printf("\n찾을 단어를 입력하세요: ");
+    if (!read_line(wbuf, sizeof(wbuf)))
+        wbuf[0] = '\0';
+
+    ptr = search(tree, wbuf);
+
+    // search()의 반환값으로 탐색 성공 여부 확인
+    if (ptr != NULL)
+        printf("%s가 트리에 있습니다.\n", ptr->word);
+    else
+        printf("%s가 트리에 없습니다.\n", wbuf);
+
+    printf("\n--- 중위 순회 결과 ---\n");
+    inorder(tree);
+    return 0;
+}
+
+// fgets()로 한 줄을 읽고 마지막 줄바꿈 문자 제거
+int read_line(char *buf, int size) {
+    // EOF 또는 입력 오류가 발생하면 0 반환
+    if (fgets(buf, size, stdin) == NULL)
+        return 0;
+
+    buf[strcspn(buf, "\r\n")] = '\0';
+    return 1;
+}
+
+// BST에서 key와 같은 단어를 반복 방식으로 탐색
+NODETYPE *search(NODETYPE *root, char *key) {
+    NODETYPE *tptr = root;
+
+    // 단어를 찾거나 더 이동할 노드가 없을 때까지 반복
+    while (tptr != NULL) {
+        int cmp = strcmp(key, tptr->word);
+
+        // 찾을 단어가 작으면 왼쪽, 크면 오른쪽으로 이동
+        if (cmp < 0)
+            tptr = tptr->left;
+        else if (cmp > 0)
+            tptr = tptr->right;
+        else
+            return tptr;  // 같은 단어를 찾음
+    }
+
+    return NULL;  // 단어가 트리에 없음
+}
+
+// 이미 루트가 있는 BST에 새 단어 삽입
+int insert_node(NODETYPE *root, char *word) {
+    NODETYPE *tptr = root;
+    NODETYPE *before = NULL;
+    int cmp = 0;
+
+    // 새 단어가 들어갈 NULL 위치까지 이동
+    while (tptr != NULL) {
+        before = tptr;
+        cmp = strcmp(word, tptr->word);
+
+        // 새 단어가 작으면 왼쪽, 크면 오른쪽으로 이동
+        if (cmp < 0)
+            tptr = tptr->left;
+        else if (cmp > 0)
+            tptr = tptr->right;
+        else
+            return 0;  // 중복 단어는 삽입하지 않음
+    }
+
+    // 삽입할 새 노드와 문자열 저장 공간 생성
+    tptr = malloc(sizeof(*tptr));
+    if (tptr == NULL)
+        return 0;
+
+    tptr->word = malloc(strlen(word) + 1);
+    if (tptr->word == NULL) {
+        free(tptr);
+        return 0;
+    }
+
+    strcpy(tptr->word, word);
+    tptr->left = NULL;
+    tptr->right = NULL;
+
+    // 마지막 비교 결과에 따라 부모의 왼쪽 또는 오른쪽에 연결
+    if (cmp < 0)
+        before->left = tptr;
+    else
+        before->right = tptr;
+
+    return 1;
+}
+
+// BST를 중위 순회하여 단어를 알파벳순으로 출력
+void inorder(NODETYPE *ptr) {
+    if (ptr != NULL) {
+        inorder(ptr->left);   // 현재 단어보다 작은 단어
+        printf("%s\n", ptr->word);
+        inorder(ptr->right);  // 현재 단어보다 큰 단어
+    }
+}
+```
+
+#### 입력 예
+
+```text
+sky
+blue
+tiger
+happy
+child
+yellow
+aha
+quit
+child
+```
+
+`quit`은 트리에 저장되는 단어가 아니라 단어 입력을 끝내는 종료 문자열이다. 그다음의 `child`는 탐색할 단어이다.
+
+#### 실행 결과
+
+```text
+child가 트리에 있습니다.
+
+--- 중위 순회 결과 ---
+aha
+blue
+child
+happy
+sky
+tiger
+yellow
+```
+
+#### 핵심 확인
+
+- `strcmp(a, b) < 0`: `a`가 `b`보다 사전순으로 앞섬
+- `strcmp(a, b) > 0`: `a`가 `b`보다 사전순으로 뒤에 있음
+- 같은 단어를 다시 입력하면 `insert_node()`가 `0`을 반환하고 중복 삽입하지 않음
+- 중위 순회는 문자열 키도 알파벳 오름차순으로 출력
+- 원본은 프로그램 종료 전에 동적 메모리를 직접 해제하지 않으므로, 확장 실습에서는 후위 순회 방식의 `free_tree()`를 추가하는 것이 좋음
+
 ---
 
 ## 8. BST 탐색
@@ -519,10 +732,62 @@ typedef struct enode {
 
 한 줄에 정수형 학번과 실수형 성적을 작성한다.
 
+두 파일을 같은 폴더에 저장하면 상대 경로로 간단하게 실행할 수 있다.
+
+```text
+Week10/
+├── p260bstex_file.c
+└── btreedata.txt
+```
+
+제공된 `btreedata.txt`의 전체 내용은 다음과 같다.
+
 ```text
 1280 3.02
 3140 4.21
 2560 3.89
+1101 4.01
+3110 2.88
+2210 3.27
+3560 2.75
+2550 3.88
+1235 4.07
+2222 3.25
+3345 2.22
+7777 7.77
+```
+
+- 첫 번째 열: BST의 키로 사용하는 학번
+- 두 번째 열: 해당 학번의 성적
+- 입력 순서는 섞여 있어도 되며, 첫 번째 데이터인 `1280`이 루트가 된다.
+- 중위 순회하면 입력 순서와 관계없이 학번이 오름차순으로 출력된다.
+
+#### 입력 데이터로 구축된 BST
+
+`btreedata.txt`를 위에서부터 차례로 삽입하면 다음 트리가 만들어진다. `L`은 왼쪽 자식, `R`은 오른쪽 자식을 의미한다.
+
+```text
+1280(3.02)
+├── L: 1101(4.01)
+│   └── R: 1235(4.07)
+└── R: 3140(4.21)
+    ├── L: 2560(3.89)
+    │   ├── L: 2210(3.27)
+    │   │   └── R: 2550(3.88)
+    │   │       └── L: 2222(3.25)
+    │   └── R: 3110(2.88)
+    └── R: 3560(2.75)
+        ├── L: 3345(2.22)
+        └── R: 7777(7.77)
+```
+
+각 노드의 표기는 `학번(성적)`이다. 트리의 위치는 성적이 아니라 `key`인 학번만 비교하여 결정한다.
+
+예를 들어 `2222`가 삽입되는 경로는 다음과 같다.
+
+```text
+1280보다 큼 → 3140보다 작음 → 2560보다 작음
+→ 2210보다 큼 → 2550보다 작음 → 2550의 왼쪽에 삽입
 ```
 
 #### 실행 흐름
@@ -689,6 +954,8 @@ void free_bst(BSTNODE *ptr) {
 
 #### 실행 방법
 
+`p260bstex_file.c`와 `btreedata.txt`가 같은 폴더에 있을 때 다음과 같이 실행한다.
+
 ```bash
 clang -std=c11 -Wall -Wextra -Werror -pedantic \
   p260bstex_file.c -o p260bstex_file
@@ -708,7 +975,9 @@ clang -std=c11 -Wall -Wextra -Werror -pedantic \
 2560 3.89
 3110 2.88
 3140 4.21
+3345 2.22
 3560 2.75
+7777 7.77
 ```
 
 ---
