@@ -1,6 +1,8 @@
 # 11주차 강의 정리: 미니 셸 복습과 시그널
 
 - **강의 자료**: `간단한쉘.pdf` (11쪽), `시그널.pdf` (29쪽)
+- **실습 코드**: `signal.zip` (시그널 예제 7개, 실습1 `alarmsignal.c` 미포함) → 점검 결과는 23절
+- **수정본 코드**: [week11-signal/](week11-signal/) (컴파일 오류 수정 + `alarmsignal.c` 추가, 8개)
 - **과목**: 시스템 프로그래밍
 - **지난주**: 프로세스 생성과 실행, 첫 번째 Shell 만들기
 - **이번 주**: 프로세스 간 통신(IPC)의 첫 주제, 시그널
@@ -508,6 +510,9 @@ sleep for 5 sec(s).     <---- Ctrl-C 입력 (프로그램 종료)
   - 코드에서 `act.sa_flags`를 초기화하지 않음 → 지역 변수라 쓰레기 값
   - 쓰레기 값에 `SA_RESETHAND` 비트가 섞이면 첫 실행 후 기본 동작(종료)으로 복귀
   - 실습 환경에 따라 매번 핸들러가 실행될 수도 있음 → 이런 불확실성 제거를 위해 **`act.sa_flags = 0;` 명시 권장**
+- macOS 실행 확인 (23절): 두 번째 `SIGINT`에도 `handler: signo=2`가 다시 출력되고 종료되지 않음
+  - 코드 구조상 핸들러는 계속 유지되는 것이 정상 → PDF의 종료는 실습 서버(리눅스)의 쓰레기 `sa_flags` 영향이라는 추정과 부합
+  - 리눅스 실습 서버에서는 직접 확인하지 않음
 - 보충: `handler`는 `while` 루프 아무 위치에서나 끼어들어 실행됨 → 루프 코드와 핸들러가 "동시에" 도는 것처럼 보이는 이유
 
 ---
@@ -733,6 +738,7 @@ Passed a 5 secs.
 - 핸들러와 공유하는 전역 플래그는 `volatile sig_atomic_t alarm_flag = 0;`으로 선언하는 것이 정석
 - `sigemptyset(&act.sa_mask); act.sa_flags = 0;` 초기화 추가 권장
 - PDF 코드엔 `#include <unistd.h>`(`alarm`, `pause` 선언) 누락 → 추가 필요
+- `signal.zip`에는 이 파일이 없음 → 위 코드로 [week11-signal/alarmsignal.c](week11-signal/alarmsignal.c) 작성, macOS에서 PDF와 같은 결과 확인
 
 ---
 
@@ -963,9 +969,98 @@ Interrupted
 
 ---
 
-## 23. 주의점
+## 23. signal.zip 실습 코드 점검
 
-- **`main()` 반환형 생략**: PDF 예제의 `main()`은 옛 C 문법(암시적 `int`) → 최신 컴파일러에서 경고 또는 오류 가능, `int main(void)` 권장
+- **zip 구성**: PDF 예제 9개 중 7개 수록, 실습1 `alarmsignal.c`는 미수록
+- **코드 내용**: PDF 슬라이드 코드와 같음, 다만 7개 모두 `void main()` 사용 + 오타·`#include` 누락 존재
+- **수정본 위치**: [week11-signal/](week11-signal/) (원본 zip은 그대로 둠)
+
+### 컴파일 오류와 수정
+
+| 파일 | 원본 컴파일 (macOS clang) | 수정 내용 |
+|---|---|---|
+| `handlesignal.c` | 오류 | `sturct` → `struct` |
+| `ignoresignal.c` | 오류 | `pinrtf` → `printf` |
+| `sendsignal.c` | 오류 | `#include <signal.h>` 추가 (`struct sigaction`, `SIGUSR1`, `kill` 선언) |
+| `raisesignal.c` | **성공** | 반환형만 정리 |
+| `blocksignal.c` | 오류 | `#include <unistd.h>` 추가 (`sleep` 선언) |
+| `blocksigusr.c` | 오류 | `#include <unistd.h>` 추가 (`pause` 선언) |
+| `pibonacci.c` | 오류 | `sahandler` → `sa_handler`, `siglogjmp` → `siglongjmp`, `#include <unistd.h>` 추가 |
+| `alarmsignal.c` | (zip에 없음) | PDF 21쪽 코드로 새로 작성 |
+
+- 공통 수정: `void main()` → `int main(void)`, 줄바꿈 CRLF → LF
+- **오타 3곳 + `<signal.h>` 누락**: 어떤 컴파일러에서도 오류
+- **`<unistd.h>` 누락**: C99부터 금지된 **암시적 함수 선언**
+  - 최신 clang, gcc 14 이상: 오류
+  - 오래된 gcc: 경고만 출력하고 컴파일 진행 → 실습 서버에선 그냥 넘어갔을 가능성
+- 수정본 8개 모두 오류·경고 없이 컴파일 확인
+
+### 실행 결과 비교
+
+- **실행 환경**: macOS, Apple clang 21
+- **키 입력 대체**: `Ctrl-C` → `kill -INT`, `Ctrl-\` → `kill -QUIT`, 출력은 파일로 기록
+- **기록 방식**: 아래 `<--` 줄은 시그널을 보낸 시점 (프로그램 시작 기준 초)
+
+| 예제 | 보낸 시그널 | 실제 결과 | PDF와 비교 |
+|---|---|---|---|
+| `handlesignal` | 3.5초 INT, 5.6초 INT | 두 번 모두 `handler: signo=2`, 계속 실행 | **다름** (PDF는 두 번째에 종료) |
+| `ignoresignal` | INT 2번, 6.6초 QUIT | INT 무시, QUIT에 종료 | 일치 |
+| `raisesignal` | 없음 | `SIGFPE`로 즉시 종료 | 일치 |
+| `alarmsignal` | 없음 | 약 5초 뒤 두 줄 출력, 정상 종료 | 일치 |
+| `sendsignal` | 4.6초 INT | Parent/Child `call 1`, `call 2` 번갈아 출력 후 종료 | 일치 |
+| `blocksignal` ① | 1초 INT | `Less critical` 출력 직후 종료 | 일치 |
+| `blocksignal` ② | 1초 QUIT | `Non critical` 출력 직후 종료 | 일치 |
+| `blocksigusr` | USR1, USR1, USR2, USR2 | USR2 → USR1(**한 번**) → USR2 | 일치 |
+| `pibonacci` | 2.5초 INT, 8초 QUIT | `1 2 3` → `Interrupted` → `1 2 3 5 8 13` → 종료 | 일치 |
+
+#### `handlesignal` 실행 기록 (PDF와 다른 유일한 예제)
+
+```
+SIGINT on 
+sleep for 1 sec(s).
+sleep for 2 sec(s).
+sleep for 3 sec(s).
+<-- 3.5s INT 전송
+handler: signo=2
+sleep for 4 sec(s).
+sleep for 5 sec(s).
+sleep for 6 sec(s).
+<-- 5.6s INT 전송
+handler: signo=2          ← PDF와 달리 두 번째에도 핸들러 실행
+sleep for 7 sec(s).
+sleep for 8 sec(s).
+sleep for 9 sec(s).       (테스트 종료를 위해 강제 정리)
+```
+
+#### `blocksignal` 실행 기록
+
+```
+Critical region start.
+<-- 1.0s INT 전송             ← 차단 중이라 보류
+Less critical region start.   ← 직후 SIGINT 해제 → 보류분 전달 → 종료
+```
+
+```
+Critical region start.
+<-- 1.0s QUIT 전송            ← 보류
+Less critical region start.   ← SIGINT만 해제, SIGQUIT은 계속 보류
+Non critical region start.    ← 전체 해제 → 보류분 전달 → 종료
+```
+
+#### 결과 읽는 법
+
+- **종료 코드 = 128 + 시그널 번호**: 시그널로 끝난 프로세스를 셸이 표시하는 관례
+  - 130 = `SIGINT`(2), 131 = `SIGQUIT`(3), 136 = `SIGFPE`(8)
+  - 확인 명령: 프로그램 종료 직후 `echo $?`
+- `raisesignal`의 `부동 소수점 예외` 문구: 대화형 셸이 출력하는 메시지라 이번 기록엔 없음, 종료 코드 136으로 같은 결과 확인
+- `sendsignal` 주의: 터미널 `Ctrl-C`는 같은 프로세스 그룹인 **부모·자식 모두**에게 전달
+  - 이번 테스트처럼 부모에게만 `kill -INT`를 보내면 자식이 남음 → `ps`로 확인 후 정리 필요
+
+---
+
+## 24. 주의점
+
+- **`main()` 반환형 생략**: PDF 예제의 `main()`, `signal.zip`의 `void main()`은 표준이 아닌 옛 문법 → 최신 컴파일러에서 경고 또는 오류 가능, `int main(void)` 권장
 - **`struct sigaction` 초기화**: 지역 변수라 `sa_mask`, `sa_flags`가 쓰레기 값 → `sigemptyset(&act.sa_mask); act.sa_flags = 0;` 습관화
 - **핸들러 안의 `printf`**: 강의 예제 편의상 사용, 엄밀히는 **비동기 시그널 안전(async-signal-safe)** 함수가 아님
   - 핸들러에선 플래그만 세우고 출력은 본문에서 하거나 `write()` 사용이 정석
@@ -974,37 +1069,3 @@ Interrupted
 - **시그널 합쳐짐**: 차단 중 같은 시그널 여러 번 → 한 번만 전달, 시그널로 "개수"를 세면 안 됨
 - **`fork()`와 시그널 설정**: 자식은 부모의 핸들러 설정·차단 마스크를 물려받음, `exec` 후엔 핸들러가 기본 동작으로 초기화 (`SIG_IGN`은 유지)
 - **`exec` 실패 처리**: `execvp()` 다음 줄엔 반드시 오류 출력 + `exit()`
-
----
-
-## 24. 퀴즈 (간단한쉘.pdf 11쪽)
-
-- 01. `argv[1]`이 가리키는 `buf`의 몇 번 칸에서 `"-l"`이 시작할까?
-- 02. 자식이 자기 `buf`의 첫 글자를 바꾸면 부모의 글자도 바뀔까?
-- 03. 자식이 `ls`를 실행할 때 PID는 어떻게 될까?
-- 04. 새 `shell>`이 나타나기 전에 부모가 기다리는 일은 무엇일까?
-
-<details>
-<summary>답 보기</summary>
-
-- 01. **3번 칸** → `argv[1] = &buf[3]`, 2번 칸 공백이 `\0`으로 바뀌어 `"-l"`이 독립 문자열이 됨
-- 02. **바뀌지 않음** → `fork()` 후 부모·자식은 각자의 주소 공간 사용, 쓰는 순간 CoW로 그 조각만 복사
-- 03. **그대로 4201** → `execvp()`는 새 프로세스를 만들지 않고 같은 프로세스의 프로그램만 교체
-- 04. **자식 프로세스의 종료** → `wait(NULL)`이 자식 종료 기록을 거둔 뒤 반환, 그다음 루프에서 `shell>` 출력
-
-</details>
-
----
-
-## 25. 확인 질문
-
-- `blocksigusr.c`에서 `SIGUSR1`을 세 번 보낸 뒤 `SIGUSR2`를 보내면 `Got a SIGUSR1 signal`은 몇 번 출력될까?
-
-<details>
-<summary>답 보기</summary>
-
-- **한 번**
-- 차단 중인 표준 시그널은 보류 여부만 비트 하나로 기록 → 몇 번 와도 보류는 1개
-- `SIGUSR2`로 `pause()`가 풀린 뒤 차단 해제 → 보류된 `SIGUSR1` 한 번만 전달
-
-</details>
