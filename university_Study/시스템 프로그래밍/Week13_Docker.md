@@ -3,7 +3,7 @@
 - **환경**: Windows → VirtualBox의 Ubuntu 24.04 LTS → Docker
 - **실행 위치**: 모든 명령은 Ubuntu 터미널, 결과 확인은 Ubuntu 안의 브라우저
 - **검증**: 명령·코드는 제공받은 자료 기준, 실행 결과는 모두 "예상 결과 (실행 전)"
-- **다루는 순서**: 개념 → 설치 → 명령어 → 리눅스 배포판 → 홈페이지·게시판 → Docker 이미지화
+- **다루는 순서**: 개념 → 설치 → 명령어 → 리눅스 배포판 → 홈페이지·게시판 → Docker 이미지화 → 쿠버네틱스
 
 ---
 
@@ -37,9 +37,10 @@ flowchart LR
 | 이미지(Image) | 프로그램과 실행 환경을 담아 둔 패키지 | Nginx가 설치된 `nginx` 이미지 |
 | 컨테이너(Container) | 이미지로 만든 실행 단위, 시작·중지 가능 | `web1`, `web2` 웹 서버 |
 | Dockerfile | 사용자 정의 이미지를 만드는 절차를 적은 파일 | Apache와 PHP 이미지에 게시판 코드 복사 |
-| Docker Hub | 이미지를 내려받고 올리는 대표 저장소 | `nginx`, `ubuntu`, `mysql` |
-| 볼륨(Volume) | 컨테이너를 삭제·교체해도 데이터를 보관하는 저장 공간 | MySQL의 게시글 데이터 |
-| Docker Compose | 여러 컨테이너의 실행 설정을 한 파일로 관리 | PHP 웹 서버와 MySQL 동시 실행 |
+| Docker Hub | 이미지를 내려받고 올리는 대표 저장소(레지스트리) | `nginx`, `ubuntu`, `mysql` |
+| 볼륨(Volume) | 컨테이너를 삭제·교체해도 데이터를 보관하는 저장 공간, 쿠버네틱스의 PersistentVolume에 해당 | MySQL의 게시글 데이터 |
+| Docker Compose | 한 서버에서 여러 컨테이너의 실행 설정을 한 파일로 관리 | PHP 웹 서버와 MySQL 동시 실행 |
+| 쿠버네틱스(Kubernetes) | 여러 서버에 걸쳐 컨테이너를 자동으로 배치·복구·확장하는 관리자, 10장 | nginx 3개를 항상 유지 |
 
 ---
 
@@ -108,7 +109,7 @@ sudo chmod a+r /etc/apt/keyrings/docker.asc
 
 - **`Do you want to continue? [Y/n]`**: `y` 입력 후 Enter
 - **`apt`**: Ubuntu의 프로그램 설치 도구
-- **GPG 키**: Docker 설치 파일의 서명을 확인하는 열쿠
+- **GPG 키**: Docker 설치 파일의 서명을 확인하는 열쇠
 - **완료 기준**: 마지막 명령 뒤 터미널 입력 표시 복귀
 
 ### 3단계. Docker 공식 저장소 등록
@@ -258,6 +259,7 @@ sudo docker rm web1
 | `sudo docker compose down` | 서비스를 멈추고 컨테이너와 프로젝트 네트워크 정리 |
 
 - **주의점**: 이름 있는 볼륨에 MySQL 데이터를 저장했다면 `down`만으로는 데이터 유지, `-v`를 붙이면 Compose에서 선언한 볼륨까지 삭제될 수 있음, 게시글 보관 시 `down`만 사용
+- **Compose의 범위**: 서버 한 대에서 여러 컨테이너를 함께 실행, 여러 서버에 걸친 관리는 10장 쿠버네틱스
 
 ---
 
@@ -577,7 +579,7 @@ sudo mysqldump --single-transaction --no-tablespaces \
 grep 'CREATE TABLE' db/01-board.sql
 ```
 
-- **예상 결과 (실행 전)**: `CREATE TABLE `posts`` 표시
+- **예상 결과 (실행 전)**: ``CREATE TABLE `posts` `` 표시
 
 ### 2단계. PHP가 Docker 안의 MySQL에 접속하도록 수정
 
@@ -732,6 +734,7 @@ sudo docker compose up -d
 - **`run`과 `start`**: `run`은 새 컨테이너 생성, `start`는 기존 컨테이너 재시작
 - **`--rm`**: 컨테이너 자동 삭제, 안에 설치하거나 저장한 내용도 함께 삭제
 - **`down`과 `down -v`**: `-v`는 볼륨까지 삭제, 데이터 보관 시 사용 금지
+- **컨테이너 안 데이터는 사라질 수 있음**: 보관할 데이터는 볼륨에 저장, 쿠버네틱스의 Pod도 같은 원칙(10장)
 - **포트 번호 구분**: 8000(PHP 내장 서버), 8080(nginx 단독 실습), 8081·8082(웹 서버 두 개), 8088(게시판 Compose)
 - **`localhost`와 `db`**: 컨테이너 안에서는 `localhost`가 자기 자신, 다른 컨테이너는 서비스 이름으로 접속
 - **초기 SQL 복원 시점**: 비어 있는 데이터 볼륨으로 처음 시작할 때만 실행
@@ -740,7 +743,128 @@ sudo docker compose up -d
 
 ---
 
-## 10. 한 장 요약
+## 10. 쿠버네틱스 입문
+
+> **쉬운 정의:** 쿠버네틱스(Kubernetes, 약칭 K8s)는 컨테이너를 여러 대의 컴퓨터에 알아서 나눠 실행하고, 죽으면 다시 살리고, 사람이 몰리면 늘려 주는 **컨테이너 관리자**
+
+- **정확한 개념**: 컨테이너화된 애플리케이션의 배포, 확장, 복구, 업데이트를 자동화하는 오케스트레이션 도구
+- **필요한 이유**: 도커와 Compose는 한 서버에서 손으로 관리
+  - 컨테이너가 죽으면 직접 다시 실행
+  - 접속자가 늘면 직접 컨테이너 추가
+  - 서버가 여러 대면 어디에 뭘 띄웠는지 직접 추적
+- **약칭 K8s**: K와 s 사이 글자가 8개
+
+### 10-1. Compose와의 차이
+
+| 구분 | Docker Compose (5-5, 8장에서 사용) | 쿠버네틱스 |
+|---|---|---|
+| 대상 | 서버 한 대 | 서버 여러 대(클러스터) |
+| 컨테이너 죽음 | 재시작 설정이 없으면 그대로 | 자동으로 다시 생성 |
+| 개수 늘리기 | 직접 설정 변경 | 숫자 하나로 확장 |
+| 무중단 업데이트 | 기본 지원 없음 | 롤링 업데이트 기본 지원 |
+| 난이도 | 낮음 | 높음 |
+| 적합한 곳 | 학습, 개발, 소규모 | 운영 서비스, 대규모 |
+
+### 10-2. 구조
+
+```mermaid
+flowchart TD
+    U["사용자: kubectl 명령"] --> CP
+    subgraph CL["클러스터"]
+        CP["컨트롤 플레인: 두뇌, 상태 기록·배치 결정"]
+        subgraph N1["노드 1 (서버)"]
+            P1["Pod: web 컨테이너"]
+            P2["Pod: web 컨테이너"]
+        end
+        subgraph N2["노드 2 (서버)"]
+            P3["Pod: web 컨테이너"]
+            P4["Pod: db 컨테이너"]
+        end
+    end
+    CP --> N1
+    CP --> N2
+```
+
+- **읽는 법**: 사용자가 원하는 상태를 말하면 컨트롤 플레인이 노드들에 Pod를 배치하고 계속 감시
+
+| 용어 | 뜻 | 비유 | 도커 대응 |
+|---|---|---|---|
+| 클러스터(Cluster) | 쿠버네틱스가 관리하는 서버 묶음 | 회사 전체 | 없음(서버 한 대) |
+| 노드(Node) | 컨테이너가 실제 실행되는 서버 한 대 | 직원 한 명의 책상 | Docker가 설치된 서버 |
+| Pod | 컨테이너를 감싼 가장 작은 실행 단위, 보통 컨테이너 1개 | 일 하나 | 컨테이너 |
+| Deployment | "이 Pod를 N개 항상 유지"라는 약속 | 인원 배정 계획서 | Compose의 서비스 정의 |
+| Service | Pod들 앞에 놓인 고정 접속 주소 | 대표 전화번호 | `ports`, 서비스 이름 접속(`db`) |
+| Namespace | 클러스터 안의 구역 나누기 | 부서 | Compose 프로젝트 |
+| ConfigMap, Secret | 설정과 비밀번호를 컨테이너 밖에서 전달 | 업무 메모, 금고 | `environment`, `.env` |
+| PersistentVolume | 데이터를 보관하는 저장 공간 | 창고 | 볼륨 |
+
+### 10-3. 핵심 원리: 원하는 상태 유지
+
+- **선언형**: "웹 서버 3개를 유지"라고 적어 두면 쿠버네틱스가 현재 상태를 계속 비교
+- **자가 치유**: Pod 하나가 죽으면 3개가 되도록 자동으로 새로 생성
+- **확장**: 숫자만 바꾸면 Pod 개수 변경
+- **롤링 업데이트**: 새 버전을 하나씩 교체해 서비스 중단 최소화
+
+### 10-4. 아주 간단한 핵심 예시
+
+```yaml
+# nginx 웹 서버 3개를 유지하는 Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+spec:
+  replicas: 3                 # Pod를 3개 유지
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: nginx
+          image: nginx        # 도커 이미지 그대로 사용
+          ports:
+            - containerPort: 80
+```
+
+```bash
+kubectl apply -f deployment.yaml
+kubectl get pods
+```
+
+- **예상 결과 (실행 전)**: `web-...` 이름의 Pod 3개가 `Running`
+- **그 결과가 나온 이유**: `replicas: 3`이 원하는 상태라 쿠버네틱스가 Pod 3개를 만들어 유지
+- **자가 치유 확인 (실행 전)**: `kubectl delete pod 이름`으로 Pod 하나를 지워도 곧 새 Pod가 생겨 3개로 복귀
+
+```bash
+kubectl scale deployment web --replicas=5
+```
+
+- **예상 결과 (실행 전)**: Pod가 5개로 증가
+
+### 10-5. 8장 게시판에 적용하면
+
+- **웹 이미지** (`mini-board-web`): Deployment와 Service로 실행, Service가 `ports: 8088:80`의 역할 담당
+- **DB 이미지** (`mini-board-db`): 데이터 보존이 필요해 PersistentVolume 설정 추가
+- **비밀번호**: `.env` 대신 Secret 사용
+- **이미지 준비**: 클러스터가 받을 수 있도록 레지스트리(Docker Hub 등)에 올려야 함, 흐름은 11장 그림 참고
+
+### 10-6. 실습 환경
+
+| 방법 | 특징 |
+|---|---|
+| Docker Desktop의 Kubernetes 켜기 | Windows·Mac에서 설정으로 활성화, 가장 간단 |
+| `minikube` | 로컬에 작은 클러스터 생성 |
+| `kind` | 도커 컨테이너 안에 클러스터 생성 |
+
+- **미확인**: 위 도구의 설치 절차와 `kubectl` 설치 여부는 확인하지 않음
+
+---
+
+## 11. 한 장 요약
 
 | 하고 싶은 일 | 명령 |
 |---|---|
@@ -752,6 +876,9 @@ sudo docker compose up -d
 | 내 이미지 만들기 | `sudo docker build -t 이름:태그 .` |
 | 여러 컨테이너 실행 | `sudo docker compose up -d` |
 | 여러 컨테이너 종료(데이터 유지) | `sudo docker compose down` |
+| 쿠버네틱스에 적용 | `kubectl apply -f 파일.yaml` |
+| Pod 상태 보기 | `kubectl get pods` |
+| 개수 늘리기 | `kubectl scale deployment 이름 --replicas=숫자` |
 
 ```mermaid
 flowchart LR
@@ -759,12 +886,9 @@ flowchart LR
     B -->|"run / compose up"| C["컨테이너"]
     C -->|"stop / down"| D["정지·삭제"]
     C --- V[("볼륨: 데이터 보관")]
+    B -->|"push"| R["레지스트리 Docker Hub"]
+    R -->|"pull"| K["쿠버네틱스 클러스터"]
+    K --> PD["Pod 안의 컨테이너"]
 ```
 
-- **읽는 법**: Dockerfile로 이미지를 만들고, 이미지로 컨테이너를 실행하며, 데이터는 볼륨에 남음
-
----
-
-## 출처
-
-- Docker Docs, Docker Hub, Ubuntu 공식 문서, PHP·MySQL 공식 문서 (제공받은 원 설명의 출처 표기 기준)
+- **읽는 법**: Dockerfile로 이미지를 만들고, 이미지로 컨테이너를 실행하며, 데이터는 볼륨에 남음, 서비스로 운영할 때는 이미지를 레지스트리에 올려 쿠버네틱스가 받아 실행
